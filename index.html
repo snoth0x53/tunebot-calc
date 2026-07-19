@@ -144,6 +144,13 @@
     const clamped = Math.max(-0.6, Math.min(0.6, relDeviation));
     return clamped * MAX_DEPTH_SHIFT;
   }
+  const SNARE_TOP_BASE = 1.4;
+  const SNARE_INTERVALS = {
+    fifth: { label: "Perfekte Quinte (Standard)", ratio: 1.5 },
+    fourth: { label: "Perfekte Quarte", ratio: 1.333 },
+    third: { label: "Gro\xDFe Terz", ratio: 1.26 },
+    unison: { label: "Unisono (Maximum Resonance)", ratio: 1 }
+  };
   function computeLugFreqs(fundamentalHz, mode, higherHead, type, diameter, depth, calibratedA) {
     const m = RESONANCE_MODES[mode];
     let highMult, lowMult, shift = 0, calibrated = false;
@@ -161,6 +168,21 @@
     const lowFreq = fundamentalHz * lowMult;
     if (mode === "maximum") return { top: highFreq, bottom: highFreq, shift, calibrated };
     return higherHead === "top" ? { top: highFreq, bottom: lowFreq, shift, calibrated } : { top: lowFreq, bottom: highFreq, shift, calibrated };
+  }
+  function computeSnareLugFreqs(fundamentalHz, intervalKey, type, diameter, depth, calibratedA) {
+    var _a;
+    const interval = (_a = SNARE_INTERVALS[intervalKey]) != null ? _a : SNARE_INTERVALS.fifth;
+    let scale = 1, shift = 0, calibrated = false;
+    if (calibratedA && calibratedA > 0) {
+      scale = calibratedA / 1.75;
+      calibrated = true;
+    } else {
+      shift = depthShift(type, diameter, depth);
+      scale = (1.75 + shift) / 1.75;
+    }
+    const top = fundamentalHz * SNARE_TOP_BASE * scale;
+    const bottom = top * interval.ratio;
+    return { top, bottom, shift, calibrated, overLimit: bottom > 400 };
   }
   let nextId = 5;
   function computeTuningOrder(N) {
@@ -234,6 +256,7 @@
         depthInput: String(d.depth).replace(".", ","),
         mode: "high",
         higherHead: "bottom",
+        snareInterval: "fifth",
         calibratedA: null,
         calibLugInput: "",
         calibFundInput: "",
@@ -256,6 +279,7 @@
           octave: 2,
           mode: "high",
           higherHead: "bottom",
+          snareInterval: "fifth",
           calibratedA: null,
           calibLugInput: "",
           calibFundInput: "",
@@ -308,15 +332,8 @@
     ))), /* @__PURE__ */ React.createElement("main", { className: "max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-6" }, drums.map((d) => {
       var _a;
       const fundamentalHz = noteToHz(d.note, d.octave);
-      const { top, bottom, shift, calibrated } = computeLugFreqs(
-        fundamentalHz,
-        d.mode,
-        d.higherHead,
-        d.type,
-        d.diameter,
-        d.depth,
-        d.calibratedA
-      );
+      const isSnare = d.type === "Snare";
+      const { top, bottom, shift, calibrated, overLimit } = isSnare ? computeSnareLugFreqs(fundamentalHz, d.snareInterval, d.type, d.diameter, d.depth, d.calibratedA) : { ...computeLugFreqs(fundamentalHz, d.mode, d.higherHead, d.type, d.diameter, d.depth, d.calibratedA), overLimit: false };
       const mode = RESONANCE_MODES[d.mode];
       const ratio = d.depth && d.diameter ? d.depth / d.diameter : 0;
       const refRatio = (_a = REFERENCE_RATIO[d.type]) != null ? _a : 0.75;
@@ -436,7 +453,15 @@
           className: "text-xs uppercase tracking-wide text-[#a8756a] hover:text-[#d99a8c] px-3 py-1.5"
         },
         "Zur\xFCcksetzen"
-      )))), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Resonance-Modus"), /* @__PURE__ */ React.createElement(
+      )))), isSnare ? /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Intervall (Resofell zu Schlagfell)"), /* @__PURE__ */ React.createElement(
+        "select",
+        {
+          value: d.snareInterval,
+          onChange: (e) => updateDrum(d.id, { snareInterval: e.target.value }),
+          className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
+        },
+        Object.entries(SNARE_INTERVALS).map(([key, iv]) => /* @__PURE__ */ React.createElement("option", { key, value: key }, iv.label))
+      ))) : /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Resonance-Modus"), /* @__PURE__ */ React.createElement(
         "select",
         {
           value: d.mode,
@@ -453,7 +478,7 @@
         },
         /* @__PURE__ */ React.createElement("option", { value: "bottom" }, "Resonanzfell (unten)"),
         /* @__PURE__ */ React.createElement("option", { value: "top" }, "Schlagfell (oben)")
-      ))), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-[#8a7a5f] italic" }, mode.desc), /* @__PURE__ */ React.createElement("div", { className: "flex gap-6 pt-2 border-t border-[#3a2c1a] items-end flex-wrap" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#a8977b] text-xs uppercase tracking-wide mb-1" }, "Grundton (Trommelklang)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, fundamentalHz.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
+      ))), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-[#8a7a5f] italic" }, isSnare ? "Laut PDF-Snare-Abschnitt: Resofell h\xF6her als Schlagfell, Standard Quinte (x1,5) \u2014 best\xE4tigt gegen echte Tune-Bot-Ger\xE4tewerte." : mode.desc), isSnare && overLimit && /* @__PURE__ */ React.createElement("p", { className: "text-xs text-[#c1666b]" }, "\u26A0 Resofell \xFCber 400 Hz \u2014 laut PDF \xDCberdehnungsgefahr, evtl. kleineres Intervall w\xE4hlen."), /* @__PURE__ */ React.createElement("div", { className: "flex gap-6 pt-2 border-t border-[#3a2c1a] items-end flex-wrap" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#a8977b] text-xs uppercase tracking-wide mb-1" }, "Grundton (Trommelklang)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, fundamentalHz.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => handlePlayDrum(fundamentalHz, top, bottom),
