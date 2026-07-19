@@ -10,12 +10,19 @@ im Browser.
 
 - Grundton (Note + Oktave) und Resonance-Modus pro Trommel einstellen
 - Automatische Berechnung der Ziel-Lug-Frequenzen für Schlag- und Resonanzfell
-- Lug-Kreis-Visualisierung passend zur Lug-Anzahl der Trommel
+- Durchmesser und Tiefe frei eingeben (Komma oder Punkt als Dezimaltrennzeichen)
 - Tiefen-Heuristik: schätzt den Einfluss von Kesseltiefe auf die nötige Fellspannung
 - **Kalibrierfunktion:** eigene gemessene Werte eintragen (Lug-Frequenz + reale
   Fundamentalfrequenz) und damit die Schätzung durch echte Messwerte ersetzen
+- **Kreuz-Stimmreihenfolge:** Lug-Kreis zeigt die empfohlene Stimm-Reihenfolge
+  (nicht die physische Position), automatisch passend zur eingestellten Lug-Anzahl –
+  funktioniert für jede gerade Anzahl (6, 8, 10, 12 ...)
 - Ton-Vorschau: kurze synthetische Klangbeispiele für Schlagfell, Resonanzfell
   und den resultierenden Trommel-Grundton
+- **Set-Name:** ganzes Kit benennen (z. B. "Rogers XP8"), um mehrere Drumsets
+  auseinanderzuhalten
+- **Drucken / Als PDF speichern:** aktuelle Einstellungen aller Trommeln als
+  sauberes Dokument sichern oder ausdrucken (über den normalen Browser-Druckdialog)
 
 ## So ermittelst du den Grundton (Fundamentalfrequenz)
 
@@ -28,7 +35,7 @@ Frequenz an einem einzelnen Lug.
 4. Angezeigten Wert ablesen – das ist deine reale Fundamentalfrequenz
 
 Diesen Wert kannst du zusammen mit der aktuell eingestellten Lug-Frequenz in die
-**Kalibrierfunktion** des Rechners eintragen (siehe "▶ Kalibrieren" bei jeder Trommel).
+**Kalibrierfunktion** des Rechners eintragen (siehe "+ Kalibrieren" bei jeder Trommel).
 Daraus wird dein individueller Koeffizient berechnet, der die generische Formel für
 genau diese Trommel/dieses Fell ersetzt – genauer als die Standardwerte.
 
@@ -48,9 +55,11 @@ Für maximale Genauigkeit empfiehlt sich die Kalibrierfunktion mit echten Messwe
 
 ## Technik
 
-Einzelne `index.html`-Datei, React + Babel Standalone + Tailwind CSS jeweils per
-CDN eingebunden. Kein npm, kein Build, direkt als statische Seite über GitHub
-Pages hostbar.
+Einzelne `index.html`-Datei: React + ReactDOM per CDN eingebunden, Tailwind CSS
+per CDN, der eigentliche App-Code ist vorab zu reinem JavaScript kompiliert
+(kein Live-Babel im Browser mehr nötig – robuster gegenüber Content-Blockern
+und Erweiterungen). Kein npm, kein eigener Build-Schritt beim Deployen, direkt
+als statische Seite über GitHub Pages hostbar.
 
 ## Nutzung lokal
 
