@@ -234,7 +234,27 @@
         input, select { font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-thumb { background: #5c4a33; border-radius: 4px; }
-      `), /* @__PURE__ */ React.createElement("header", { className: "border-b border-[#3a2c1a] px-6 py-8 md:px-10" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-5xl mx-auto" }, /* @__PURE__ */ React.createElement("p", { className: "text-[#c9a15a] text-xs tracking-[0.25em] uppercase mb-2" }, "Overtone Labs Formel"), /* @__PURE__ */ React.createElement("h1", { className: "text-3xl md:text-4xl", style: { fontFamily: "'Playfair Display', Georgia, serif" } }, "Tune-Bot Lug-Rechner"), /* @__PURE__ */ React.createElement("p", { className: "mt-2 text-[#a8977b] max-w-xl text-sm leading-relaxed" }, "Grundton w\xE4hlen, Resonance-Modus einstellen \u2014 die Ziel-Frequenz f\xFCr jeden Lug wird nach der offiziellen Tune-Bot-Formel berechnet."))), /* @__PURE__ */ React.createElement("main", { className: "max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-6" }, drums.map((d) => {
+        .print-only { display: none; }
+        @media print {
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          body, #root, #root * {
+            background: white !important;
+            color: black !important;
+            box-shadow: none !important;
+            border-color: #999 !important;
+          }
+          .drum-card { break-inside: avoid; page-break-inside: avoid; margin-bottom: 16px; }
+          input, select { border: none !important; padding: 0 !important; -webkit-appearance: none; appearance: none; }
+        }
+      `), /* @__PURE__ */ React.createElement("header", { className: "border-b border-[#3a2c1a] px-6 py-8 md:px-10" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-5xl mx-auto flex items-start justify-between gap-4 flex-wrap" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c9a15a] text-xs tracking-[0.25em] uppercase mb-2" }, "Overtone Labs Formel"), /* @__PURE__ */ React.createElement("h1", { className: "text-3xl md:text-4xl", style: { fontFamily: "'Playfair Display', Georgia, serif" } }, "Tune-Bot Lug-Rechner"), /* @__PURE__ */ React.createElement("p", { className: "mt-2 text-[#a8977b] max-w-xl text-sm leading-relaxed" }, "Grundton w\xE4hlen, Resonance-Modus einstellen \u2014 die Ziel-Frequenz f\xFCr jeden Lug wird nach der offiziellen Tune-Bot-Formel berechnet."), /* @__PURE__ */ React.createElement("p", { className: "print-only text-xs text-[#6b5d47] mt-2" }, "Ausgedruckt am ", (/* @__PURE__ */ new Date()).toLocaleDateString("de-DE"))), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => window.print(),
+        className: "no-print shrink-0 text-xs uppercase tracking-wide border border-[#c9a15a] text-[#c9a15a] rounded-sm px-4 py-2.5 hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors"
+      },
+      "\u{1F5A8} Drucken / Als PDF speichern"
+    ))), /* @__PURE__ */ React.createElement("main", { className: "max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-6" }, drums.map((d) => {
       var _a;
       const fundamentalHz = noteToHz(d.note, d.octave);
       const { top, bottom, shift, calibrated } = computeLugFreqs(
@@ -249,7 +269,7 @@
       const mode = RESONANCE_MODES[d.mode];
       const ratio = d.depth && d.diameter ? d.depth / d.diameter : 0;
       const refRatio = (_a = REFERENCE_RATIO[d.type]) != null ? _a : 0.75;
-      return /* @__PURE__ */ React.createElement("div", { key: d.id, className: "border border-[#3a2c1a] rounded-sm bg-[#211910] p-5 md:p-6" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-start justify-between gap-4 mb-5 flex-wrap" }, /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement("div", { key: d.id, className: "drum-card border border-[#3a2c1a] rounded-sm bg-[#211910] p-5 md:p-6" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-start justify-between gap-4 mb-5 flex-wrap" }, /* @__PURE__ */ React.createElement(
         "input",
         {
           value: d.name,
@@ -261,7 +281,7 @@
         "button",
         {
           onClick: () => removeDrum(d.id),
-          className: "text-[#a8756a] hover:text-[#d99a8c] text-xs tracking-wide uppercase"
+          className: "no-print text-[#a8756a] hover:text-[#d99a8c] text-xs tracking-wide uppercase"
         },
         "Entfernen"
       )), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6" }, /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Typ"), /* @__PURE__ */ React.createElement(
@@ -313,7 +333,7 @@
           onChange: (e) => updateDrum(d.id, { octave: Number(e.target.value) }),
           className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
         }
-      ))), /* @__PURE__ */ React.createElement("div", { className: "text-xs text-[#8a7a5f] flex flex-wrap gap-x-4 gap-y-1" }, /* @__PURE__ */ React.createElement("span", null, "Tiefe/Durchmesser: ", ratio.toFixed(2), " (Referenz ", d.type, ": ", refRatio.toFixed(2), ")"), calibrated ? /* @__PURE__ */ React.createElement("span", { className: "text-[#c9a15a]" }, "Kalibrierter Koeffizient aktiv: a = ", d.calibratedA.toFixed(3), " (ersetzt Tiefen-N\xE4herung)") : /* @__PURE__ */ React.createElement("span", { className: shift > 1e-3 ? "text-[#c1666b]" : shift < -1e-3 ? "text-[#7fa593]" : "" }, "Multiplikator-Shift: ", shift >= 0 ? "+" : "", shift.toFixed(3), shift > 1e-3 ? " (flacher \u2192 mehr Spannung n\xF6tig)" : shift < -1e-3 ? " (tiefer \u2192 weniger Spannung n\xF6tig)" : " (entspricht Referenz)")), /* @__PURE__ */ React.createElement("div", { className: "border border-[#3a2c1a] rounded-sm p-3 bg-[#170f09]" }, /* @__PURE__ */ React.createElement(
+      ))), /* @__PURE__ */ React.createElement("div", { className: "text-xs text-[#8a7a5f] flex flex-wrap gap-x-4 gap-y-1" }, /* @__PURE__ */ React.createElement("span", null, "Tiefe/Durchmesser: ", ratio.toFixed(2), " (Referenz ", d.type, ": ", refRatio.toFixed(2), ")"), calibrated ? /* @__PURE__ */ React.createElement("span", { className: "text-[#c9a15a]" }, "Kalibrierter Koeffizient aktiv: a = ", d.calibratedA.toFixed(3), " (ersetzt Tiefen-N\xE4herung)") : /* @__PURE__ */ React.createElement("span", { className: shift > 1e-3 ? "text-[#c1666b]" : shift < -1e-3 ? "text-[#7fa593]" : "" }, "Multiplikator-Shift: ", shift >= 0 ? "+" : "", shift.toFixed(3), shift > 1e-3 ? " (flacher \u2192 mehr Spannung n\xF6tig)" : shift < -1e-3 ? " (tiefer \u2192 weniger Spannung n\xF6tig)" : " (entspricht Referenz)")), /* @__PURE__ */ React.createElement("div", { className: "no-print border border-[#3a2c1a] rounded-sm p-3 bg-[#170f09]" }, /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => updateDrum(d.id, { showCalib: !d.showCalib }),
@@ -376,7 +396,7 @@
         {
           onClick: () => handlePlayDrum(fundamentalHz, top, bottom),
           title: "Trommelklang abspielen",
-          className: "w-7 h-7 rounded-full border border-[#c9a15a] text-[#c9a15a] hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
+          className: "no-print w-7 h-7 rounded-full border border-[#c9a15a] text-[#c9a15a] hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
       ))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c1666b] text-xs uppercase tracking-wide mb-1" }, "Schlagfell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, top.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
@@ -384,7 +404,7 @@
         {
           onClick: () => handlePlay(top),
           title: "Ton abspielen",
-          className: "w-7 h-7 rounded-full border border-[#c1666b] text-[#c1666b] hover:bg-[#c1666b] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
+          className: "no-print w-7 h-7 rounded-full border border-[#c1666b] text-[#c1666b] hover:bg-[#c1666b] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
       ))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#7fa593] text-xs uppercase tracking-wide mb-1" }, "Resofell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, bottom.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
@@ -392,14 +412,14 @@
         {
           onClick: () => handlePlay(bottom),
           title: "Ton abspielen",
-          className: "w-7 h-7 rounded-full border border-[#7fa593] text-[#7fa593] hover:bg-[#7fa593] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
+          className: "no-print w-7 h-7 rounded-full border border-[#7fa593] text-[#7fa593] hover:bg-[#7fa593] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
       ))), /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => handlePlayBoth(top, bottom),
-          className: "text-xs uppercase tracking-wide text-[#c9a15a] border border-[#c9a15a] rounded-sm px-3 py-1.5 hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors"
+          className: "no-print text-xs uppercase tracking-wide text-[#c9a15a] border border-[#c9a15a] rounded-sm px-3 py-1.5 hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors"
         },
         "\u25B6 Beide nacheinander"
       ))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-2 justify-center" }, /* @__PURE__ */ React.createElement(LugRing, { lugs: d.lugs, topHz: top, bottomHz: bottom }), /* @__PURE__ */ React.createElement("p", { className: "text-[10px] text-[#8a7a5f] uppercase tracking-wide" }, "Lug-Positionen"))));
@@ -407,7 +427,7 @@
       "button",
       {
         onClick: addDrum,
-        className: "w-full border border-dashed border-[#5c4a33] rounded-sm py-3 text-[#c9a15a] hover:border-[#c9a15a] hover:bg-[#211910] transition-colors text-sm uppercase tracking-wide"
+        className: "no-print w-full border border-dashed border-[#5c4a33] rounded-sm py-3 text-[#c9a15a] hover:border-[#c9a15a] hover:bg-[#211910] transition-colors text-sm uppercase tracking-wide"
       },
       "+ Trommel hinzuf\xFCgen"
     ), /* @__PURE__ */ React.createElement("footer", { className: "pt-6 text-xs text-[#6b5d47] leading-relaxed border-t border-[#3a2c1a] space-y-2" }, /* @__PURE__ */ React.createElement("p", null, "Formel nach Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Tiefen-Einfluss:"), " Es gibt daf\xFCr keine offizielle Tune-Bot-Formel \u2014 laut zugeh\xF6rigem Patent wird der reale Multiplikator pro Trommel kalibriert/gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Industriestandard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Kalibrieren:"), " Tr\xE4gst du bei einer Trommel eine gemessene Lug- und Fundamentalfrequenz ein, wird daraus dein realer Koeffizient (a = Lug \xF7 Fundamental) berechnet. Dieser ersetzt dann die Tiefen-N\xE4herung f\xFCr genau diese Trommel \u2014 deutlich pr\xE4ziser, weil Kesselmaterial, Felltyp und Bauart darin bereits stecken."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Ton-Preview:"), " Die \u25B6-Buttons bei Schlag-/ Resofell spielen einen reinen Sinuston bei der jeweiligen Lug-Zielfrequenz. Der \u25B6-Button beim Grundton simuliert stattdessen n\xE4herungsweise den ", /* @__PURE__ */ React.createElement("em", null, "gekoppelten"), " Klang der ganzen Trommel (Fundamentalton plus leise Fell-Partialt\xF6ne und Attack-Transient) \u2014 beides sind H\xF6reinsch\xE4tzungen zur Orientierung, kein realistischer Fell- oder Kesselklang."))));
