@@ -163,15 +163,46 @@
     return higherHead === "top" ? { top: highFreq, bottom: lowFreq, shift, calibrated } : { top: lowFreq, bottom: highFreq, shift, calibrated };
   }
   let nextId = 5;
-  function LugRing({ lugs, topHz, bottomHz }) {
-    const size = 200;
+  function computeTuningOrder(N) {
+    const half = Math.floor(N / 2);
+    const order = new Array(N).fill(1);
+    for (let step = 0; step < N; step++) {
+      const idx = (Math.floor(step / 2) + step % 2 * half) % N;
+      order[idx] = step + 1;
+    }
+    return order;
+  }
+  function LugRing({ lugs, topHz, idPrefix }) {
+    const size = 220;
     const c = size / 2;
-    const r = 78;
+    const r = 82;
     const points = Array.from({ length: lugs }, (_, i) => {
       const angle = i / lugs * 2 * Math.PI - Math.PI / 2;
       return { x: c + r * Math.cos(angle), y: c + r * Math.sin(angle) };
     });
-    return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, className: "shrink-0" }, /* @__PURE__ */ React.createElement("circle", { cx: c, cy: c, r: r + 14, fill: "none", stroke: "#5c4a33", strokeWidth: "1", opacity: "0.4" }), /* @__PURE__ */ React.createElement("circle", { cx: c, cy: c, r: 40, fill: "#241b13", stroke: "#7a5c33", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("text", { x: c, y: c - 6, textAnchor: "middle", fill: "#e8dcc4", fontSize: "13", fontFamily: "ui-monospace, monospace" }, topHz.toFixed(0), " Hz"), /* @__PURE__ */ React.createElement("text", { x: c, y: c + 12, textAnchor: "middle", fill: "#c9a15a", fontSize: "10", fontFamily: "ui-monospace, monospace" }, "oben"), points.map((p, i) => /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("circle", { cx: p.x, cy: p.y, r: "9", fill: "#3a2c1a", stroke: "#c9a15a", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("text", { x: p.x, y: p.y + 3, textAnchor: "middle", fill: "#e8dcc4", fontSize: "8" }, i + 1))));
+    const order = computeTuningOrder(lugs);
+    const byStep = new Array(lugs);
+    order.forEach((step, idx) => {
+      byStep[step - 1] = points[idx];
+    });
+    const arrowId = `arrow-${idPrefix}`;
+    return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, className: "shrink-0" }, /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("marker", { id: arrowId, viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "6", markerHeight: "6", orient: "auto-start-reverse" }, /* @__PURE__ */ React.createElement("path", { d: "M2 1L8 5L2 9", fill: "none", stroke: "#c9a15a", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" }))), /* @__PURE__ */ React.createElement("circle", { cx: c, cy: c, r: r + 16, fill: "none", stroke: "#5c4a33", strokeWidth: "1", opacity: "0.4" }), /* @__PURE__ */ React.createElement("circle", { cx: c, cy: c, r: 34, fill: "#241b13", stroke: "#7a5c33", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("text", { x: c, y: c, textAnchor: "middle", dominantBaseline: "central", fill: "#e8dcc4", fontSize: "12", fontFamily: "ui-monospace, monospace" }, topHz.toFixed(0), " Hz"), byStep.slice(0, -1).map((p, i) => {
+      const next = byStep[i + 1];
+      return /* @__PURE__ */ React.createElement(
+        "line",
+        {
+          key: i,
+          x1: p.x,
+          y1: p.y,
+          x2: next.x,
+          y2: next.y,
+          stroke: "#c9a15a",
+          strokeWidth: "1.5",
+          opacity: "0.85",
+          markerEnd: `url(#${arrowId})`
+        }
+      );
+    }), points.map((p, i) => /* @__PURE__ */ React.createElement("g", { key: i }, /* @__PURE__ */ React.createElement("circle", { cx: p.x, cy: p.y, r: "11", fill: "#3a2c1a", stroke: "#c9a15a", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("text", { x: p.x, y: p.y, textAnchor: "middle", dominantBaseline: "central", fill: "#e8dcc4", fontSize: "10", fontWeight: "bold" }, order[i]))));
   }
   function TunebotCalculator() {
     const audioCtxRef = useRef(null);
@@ -453,7 +484,7 @@
           className: "no-print text-xs uppercase tracking-wide text-[#c9a15a] border border-[#c9a15a] rounded-sm px-3 py-1.5 hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors"
         },
         "\u25B6 Beide nacheinander"
-      ))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-2 justify-center" }, /* @__PURE__ */ React.createElement(LugRing, { lugs: d.lugs, topHz: top, bottomHz: bottom }), /* @__PURE__ */ React.createElement("p", { className: "text-[10px] text-[#8a7a5f] uppercase tracking-wide" }, "Lug-Positionen"))));
+      ))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-2 justify-center" }, /* @__PURE__ */ React.createElement(LugRing, { lugs: d.lugs, topHz: top, idPrefix: d.id }), /* @__PURE__ */ React.createElement("p", { className: "text-[10px] text-[#8a7a5f] uppercase tracking-wide text-center max-w-[160px]" }, "Zahlen = Kreuz-Stimmreihenfolge"))));
     }), /* @__PURE__ */ React.createElement(
       "button",
       {
@@ -461,7 +492,7 @@
         className: "no-print w-full border border-dashed border-[#5c4a33] rounded-sm py-3 text-[#c9a15a] hover:border-[#c9a15a] hover:bg-[#211910] transition-colors text-sm uppercase tracking-wide"
       },
       "+ Trommel hinzuf\xFCgen"
-    ), /* @__PURE__ */ React.createElement("footer", { className: "pt-6 text-xs text-[#6b5d47] leading-relaxed border-t border-[#3a2c1a] space-y-2" }, /* @__PURE__ */ React.createElement("p", null, "Formel nach Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Tiefen-Einfluss:"), " Es gibt daf\xFCr keine offizielle Tune-Bot-Formel \u2014 laut zugeh\xF6rigem Patent wird der reale Multiplikator pro Trommel kalibriert/gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Industriestandard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Kalibrieren:"), " Tr\xE4gst du bei einer Trommel eine gemessene Lug- und Fundamentalfrequenz ein, wird daraus dein realer Koeffizient (a = Lug \xF7 Fundamental) berechnet. Dieser ersetzt dann die Tiefen-N\xE4herung f\xFCr genau diese Trommel \u2014 deutlich pr\xE4ziser, weil Kesselmaterial, Felltyp und Bauart darin bereits stecken."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Ton-Preview:"), " Die \u25B6-Buttons bei Schlag-/ Resofell spielen einen reinen Sinuston bei der jeweiligen Lug-Zielfrequenz. Der \u25B6-Button beim Grundton simuliert stattdessen n\xE4herungsweise den ", /* @__PURE__ */ React.createElement("em", null, "gekoppelten"), " Klang der ganzen Trommel (Fundamentalton plus leise Fell-Partialt\xF6ne und Attack-Transient) \u2014 beides sind H\xF6reinsch\xE4tzungen zur Orientierung, kein realistischer Fell- oder Kesselklang."))));
+    ), /* @__PURE__ */ React.createElement("footer", { className: "pt-6 text-xs text-[#6b5d47] leading-relaxed border-t border-[#3a2c1a] space-y-2" }, /* @__PURE__ */ React.createElement("p", null, "Formel nach Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Tiefen-Einfluss:"), " Es gibt daf\xFCr keine offizielle Tune-Bot-Formel \u2014 laut zugeh\xF6rigem Patent wird der reale Multiplikator pro Trommel kalibriert/gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Industriestandard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Kalibrieren:"), " Tr\xE4gst du bei einer Trommel eine gemessene Lug- und Fundamentalfrequenz ein, wird daraus dein realer Koeffizient (a = Lug \xF7 Fundamental) berechnet. Dieser ersetzt dann die Tiefen-N\xE4herung f\xFCr genau diese Trommel \u2014 deutlich pr\xE4ziser, weil Kesselmaterial, Felltyp und Bauart darin bereits stecken."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Ton-Preview:"), " Die \u25B6-Buttons bei Schlag-/ Resofell spielen einen reinen Sinuston bei der jeweiligen Lug-Zielfrequenz. Der \u25B6-Button beim Grundton simuliert stattdessen n\xE4herungsweise den ", /* @__PURE__ */ React.createElement("em", null, "gekoppelten"), " Klang der ganzen Trommel (Fundamentalton plus leise Fell-Partialt\xF6ne und Attack-Transient) \u2014 beides sind H\xF6reinsch\xE4tzungen zur Orientierung, kein realistischer Fell- oder Kesselklang."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Kreuz-Stimmreihenfolge:"), " Die Zahlen im Lug-Kreis zeigen nicht die physische Position, sondern die empfohlene Reihenfolge beim Stimmen (immer zum gegen\xFCberliegenden bzw. \xFCbern\xE4chsten Lug springen, nie im Kreis herum). Formel: Position(Schritt) = \u230ASchritt/2\u230B + (Schritt mod 2) \xD7 \u230AN/2\u230B \u2014 funktioniert f\xFCr jede gerade Lug-Anzahl."))));
   }
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(/* @__PURE__ */ React.createElement(TunebotCalculator, null));
