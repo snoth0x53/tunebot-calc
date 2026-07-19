@@ -17,6 +17,21 @@ im Browser.
 - Ton-Vorschau: kurze synthetische Klangbeispiele für Schlagfell, Resonanzfell
   und den resultierenden Trommel-Grundton
 
+## So ermittelst du den Grundton (Fundamentalfrequenz)
+
+Der Grundton ist die Tonhöhe der ganzen Trommel beim mittigen Anschlag – nicht die
+Frequenz an einem einzelnen Lug.
+
+1. Trommel auf einen Ständer stellen (nicht auf den Schoß/eine weiche Unterlage legen)
+2. Beide Felle grob gleichmäßig stimmen (unisono, ein beliebiger Ausgangswert reicht)
+3. Mit dem Tunebot-Clip an einem Lug ansetzen, mittig auf das Fell schlagen
+4. Angezeigten Wert ablesen – das ist deine reale Fundamentalfrequenz
+
+Diesen Wert kannst du zusammen mit der aktuell eingestellten Lug-Frequenz in die
+**Kalibrierfunktion** des Rechners eintragen (siehe "▶ Kalibrieren" bei jeder Trommel).
+Daraus wird dein individueller Koeffizient berechnet, der die generische Formel für
+genau diese Trommel/dieses Fell ersetzt – genauer als die Standardwerte.
+
 ## Formel-Grundlage
 
 Basiert auf dem offiziellen [Tune-Bot Tuning Guide](https://tune-bot.com/tunebottuningguide.pdf)
