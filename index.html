@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tune-Bot Lug-Rechner</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #1a140d; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+
+const { useState, useMemo, useRef } = React;
+
+// ---------- Audio: percussive tone preview ----------
+function getAudioCtx(ref) {
+  if (!ref.current) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    ref.current = new Ctx();
+  }
+  if (ref.current.state === "suspended") ref.current.resume();
+  return ref.current;
+}
+
+// Plays a short, drum-like percussive tone at the given frequency: a pitched
+// sine "body" plus a brief filtered noise "attack", both with a fast decay envelope.
+function playTone(ctx, freqHz, duration = 0.9) {
+  const now = ctx.currentTime;
+
+  // Tonal body
+  const osc = ctx.createOscillator();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(freqHz, now);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(freqHz * 0.85, 20), now + duration);
+
+  const oscGain = ctx.createGain();
+  oscGain.gain.setValueAtTime(0.0001, now);
+  oscGain.gain.exponentialRampToValueAtTime(0.55, now + 0.008);
+  oscGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  osc.connect(oscGain);
+  oscGain.connect(ctx.destination);
+
+  // Noise attack (stick impact)
+  const bufferSize = ctx.sampleRate * 0.05;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = "bandpass";
+  noiseFilter.frequency.value = freqHz * 2;
+  noiseFilter.Q.value = 0.7;
+
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.35, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+  noise.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + duration);
+  noise.start(now);
+  noise.stop(now + 0.06);
+}
+
+// Plays a richer, more resonant tone approximating the whole drum's fundamental pitch
+// (top and bottom head coupled together), rather than a single lug's pure tone.
+function playDrumTone(ctx, fundamentalHz, topHz, bottomHz, duration = 1.4) {
+  const now = ctx.currentTime;
+  const master = ctx.createGain();
+  master.gain.value = 0.7;
+  master.connect(ctx.destination);
+
+  // Slight pitch-drop on attack, typical of a struck membrane settling to its fundamental
+  const body = ctx.createOscillator();
+  body.type = "sine";
+  body.frequency.setValueAtTime(fundamentalHz * 1.06, now);
+  body.frequency.exponentialRampToValueAtTime(fundamentalHz, now + 0.09);
+  body.frequency.exponentialRampToValueAtTime(Math.max(fundamentalHz * 0.92, 20), now + duration);
+
+  const bodyGain = ctx.createGain();
+  bodyGain.gain.setValueAtTime(0.0001, now);
+  bodyGain.gain.exponentialRampToValueAtTime(0.65, now + 0.01);
+  bodyGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+  body.connect(bodyGain);
+  bodyGain.connect(master);
+
+  // Faint top/bottom head partials for a beating, coupled-membrane texture
+  [topHz, bottomHz].forEach((f, i) => {
+    const partial = ctx.createOscillator();
+    partial.type = "triangle";
+    partial.frequency.setValueAtTime(f, now);
+    const pGain = ctx.createGain();
+    pGain.gain.setValueAtTime(0.0001, now);
+    pGain.gain.exponentialRampToValueAtTime(0.09, now + 0.01);
+    pGain.gain.exponentialRampToValueAtTime(0.0005, now + duration * 0.6);
+    partial.connect(pGain);
+    pGain.connect(master);
+    partial.start(now);
+    partial.stop(now + duration * 0.6);
+  });
+
+  // Prominent noise attack (stick + shell transient)
+  const bufferSize = ctx.sampleRate * 0.08;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = "bandpass";
+  noiseFilter.frequency.value = fundamentalHz * 3;
+  noiseFilter.Q.value = 0.6;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.5, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+  noise.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(master);
+
+  body.start(now);
+  body.stop(now + duration);
+  noise.start(now);
+  noise.stop(now + 0.09);
+}
+
+// ---------- Music / physics helpers ----------
+const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+function noteToHz(noteName, octave) {
+  const semitone = NOTE_NAMES.indexOf(noteName);
+  const midi = 12 * (octave + 1) + semitone;
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+// Resonance mode multipliers, straight from the Overtone Labs Tune-Bot guide
+const RESONANCE_MODES = {
+  maximum: { label: "Maximum (Unisono)", high: 1.75, low: 1.75, desc: "Beide Felle gleich \u2014 volles Sustain, offener Ton" },
+  high: { label: "High", high: 1.85, low: 1.5, desc: "Leichtes Intervall \u2014 mehr Kontrolle, für Live gut geeignet" },
+  medium: { label: "Medium", high: 2.0, low: 1.4, desc: "Deutlicheres Intervall \u2014 klarer Attack" },
+  low: { label: "Low", high: 2.3, low: 1.2, desc: "Größtes Intervall \u2014 kürzestes Sustain, viel Attack" },
+};
+
+const DRUM_PRESETS = [
+  { name: "22\" Bass Drum", type: "Bass Drum", diameter: 22, depth: 18, lugs: 8, note: "D#", octave: 1 },
+  { name: "14\" Rack Tom", type: "Tom", diameter: 14, depth: 10, lugs: 8, note: "F", octave: 2 },
+  { name: "16\" Floor Tom", type: "Floor Tom", diameter: 16, depth: 16, lugs: 8, note: "D", octave: 2 },
+  { name: "14x5\" Snare", type: "Snare", diameter: 14, depth: 5, lugs: 10, note: "G", octave: 2 },
+];
+
+// Typische Tiefe/Durchmesser-Verhältnisse als Referenzpunkt (kein offizieller Standard,
+// sondern grobe Praxiswerte moderner Standardtrommeln der jeweiligen Kategorie).
+const REFERENCE_RATIO = {
+  "Bass Drum": 0.72,
+  "Tom": 0.75,
+  "Floor Tom": 0.85,
+  "Snare": 0.46, // entspricht klassischer 14x6.5"
+};
+
+// Maximal zulässige Verschiebung des Multiplikators durch die Tiefen-Heuristik.
+const MAX_DEPTH_SHIFT = 0.15;
+
+// Es gibt keine offizielle Tune-Bot-Formel für den Tiefeneinfluss (laut Overtone-Labs-
+// Patent wird der reale Koeffizient pro Trommel kalibriert/gemessen, nicht berechnet).
+// Diese Funktion ist eine plausible, transparent gekennzeichnete Näherung: eine im
+// Vergleich zur Referenz FLACHERE Trommel bekommt einen höheren Multiplikator (mehr
+// Spannung nötig, damit das Fell nicht "schlapp" wird), eine TIEFERE Trommel einen
+// niedrigeren (kann bei geringerer Spannung noch voll klingen).
+function depthShift(type, diameter, depth) {
+  if (!diameter || !depth) return 0;
+  const ref = REFERENCE_RATIO[type] ?? 0.75;
+  const ratio = depth / diameter;
+  const relDeviation = (ref - ratio) / ref; // >0 = flacher als Referenz
+  const clamped = Math.max(-0.6, Math.min(0.6, relDeviation));
+  return clamped * MAX_DEPTH_SHIFT;
+}
+
+function computeLugFreqs(fundamentalHz, mode, higherHead, type, diameter, depth, calibratedA) {
+  const m = RESONANCE_MODES[mode];
+  let highMult, lowMult, shift = 0, calibrated = false;
+
+  if (calibratedA && calibratedA > 0) {
+    // Gemessener Koeffizient ersetzt die geschätzte Tiefen-Heuristik. Die Mode-Verhältnisse
+    // (high/low) bleiben proportional erhalten, skaliert relativ zum Standard-Maximum (1.75).
+    const scale = calibratedA / 1.75;
+    highMult = m.high * scale;
+    lowMult = m.low * scale;
+    calibrated = true;
+  } else {
+    shift = depthShift(type, diameter, depth);
+    highMult = Math.max(1.3, Math.min(2.6, m.high + shift));
+    lowMult = Math.max(1.05, Math.min(2.0, m.low + shift));
+  }
+
+  const highFreq = fundamentalHz * highMult;
+  const lowFreq = fundamentalHz * lowMult;
+  if (mode === "maximum") return { top: highFreq, bottom: highFreq, shift, calibrated };
+  return higherHead === "top"
+    ? { top: highFreq, bottom: lowFreq, shift, calibrated }
+    : { top: lowFreq, bottom: highFreq, shift, calibrated };
+}
+
+let nextId = 5;
+
+// ---------- Lug ring visual ----------
+function LugRing({ lugs, topHz, bottomHz }) {
+  const size = 200;
+  const c = size / 2;
+  const r = 78;
+  const points = Array.from({ length: lugs }, (_, i) => {
+    const angle = (i / lugs) * 2 * Math.PI - Math.PI / 2;
+    return { x: c + r * Math.cos(angle), y: c + r * Math.sin(angle) };
+  });
+
+  return (
+    <svg width={size} height={size} className="shrink-0">
+      <circle cx={c} cy={c} r={r + 14} fill="none" stroke="#5c4a33" strokeWidth="1" opacity="0.4" />
+      <circle cx={c} cy={c} r={40} fill="#241b13" stroke="#7a5c33" strokeWidth="1.5" />
+      <text x={c} y={c - 6} textAnchor="middle" fill="#e8dcc4" fontSize="13" fontFamily="ui-monospace, monospace">
+        {topHz.toFixed(0)} Hz
+      </text>
+      <text x={c} y={c + 12} textAnchor="middle" fill="#c9a15a" fontSize="10" fontFamily="ui-monospace, monospace">
+        oben
+      </text>
+      {points.map((p, i) => (
+        <g key={i}>
+          <circle cx={p.x} cy={p.y} r="9" fill="#3a2c1a" stroke="#c9a15a" strokeWidth="1.5" />
+          <text x={p.x} y={p.y + 3} textAnchor="middle" fill="#e8dcc4" fontSize="8">
+            {i + 1}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function TunebotCalculator() {
+  const audioCtxRef = useRef(null);
+
+  const handlePlay = (freqHz) => {
+    const ctx = getAudioCtx(audioCtxRef);
+    playTone(ctx, freqHz);
+  };
+
+  const handlePlayDrum = (fundamentalHz, topHz, bottomHz) => {
+    const ctx = getAudioCtx(audioCtxRef);
+    playDrumTone(ctx, fundamentalHz, topHz, bottomHz);
+  };
+
+  const handlePlayBoth = (topHz, bottomHz) => {
+    const ctx = getAudioCtx(audioCtxRef);
+    playTone(ctx, topHz);
+    setTimeout(() => playTone(ctx, bottomHz), 700);
+  };
+
+  const [drums, setDrums] = useState(
+    DRUM_PRESETS.map((d, i) => ({
+      id: i, ...d, mode: "high", higherHead: "bottom",
+      calibratedA: null, calibLugInput: "", calibFundInput: "", showCalib: false,
+    }))
+  );
+
+  const addDrum = () => {
+    setDrums([
+      ...drums,
+      {
+        id: nextId++, name: "Neue Trommel", type: "Tom", diameter: 12, depth: 9, lugs: 6,
+        note: "A", octave: 2, mode: "high", higherHead: "bottom",
+        calibratedA: null, calibLugInput: "", calibFundInput: "", showCalib: false,
+      },
+    ]);
+  };
+
+  const removeDrum = (id) => setDrums(drums.filter((d) => d.id !== id));
+
+  const updateDrum = (id, patch) =>
+    setDrums(drums.map((d) => (d.id === id ? { ...d, ...patch } : d)));
+
+  const applyCalibration = (d) => {
+    const lugHz = parseFloat(d.calibLugInput);
+    const fundHz = parseFloat(d.calibFundInput);
+    if (!lugHz || !fundHz) return;
+    updateDrum(d.id, { calibratedA: lugHz / fundHz });
+  };
+
+  const resetCalibration = (id) =>
+    updateDrum(id, { calibratedA: null, calibLugInput: "", calibFundInput: "" });
+
+  return (
+    <div className="min-h-screen bg-[#1a140d] text-[#e8dcc4]" style={{ fontFamily: "Georgia, 'Iowan Old Style', serif" }}>
+      <style>{`
+        input, select { font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #5c4a33; border-radius: 4px; }
+      `}</style>
+
+      <header className="border-b border-[#3a2c1a] px-6 py-8 md:px-10">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-[#c9a15a] text-xs tracking-[0.25em] uppercase mb-2">Overtone Labs Formel</p>
+          <h1 className="text-3xl md:text-4xl" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+            Tune-Bot Lug-Rechner
+          </h1>
+          <p className="mt-2 text-[#a8977b] max-w-xl text-sm leading-relaxed">
+            Grundton wählen, Resonance-Modus einstellen &mdash; die Ziel-Frequenz für jeden Lug wird
+            nach der offiziellen Tune-Bot-Formel berechnet.
+          </p>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-6">
+        {drums.map((d) => {
+          const fundamentalHz = noteToHz(d.note, d.octave);
+          const { top, bottom, shift, calibrated } = computeLugFreqs(
+            fundamentalHz, d.mode, d.higherHead, d.type, d.diameter, d.depth, d.calibratedA
+          );
+          const mode = RESONANCE_MODES[d.mode];
+          const ratio = d.depth && d.diameter ? d.depth / d.diameter : 0;
+          const refRatio = REFERENCE_RATIO[d.type] ?? 0.75;
+
+          return (
+            <div key={d.id} className="border border-[#3a2c1a] rounded-sm bg-[#211910] p-5 md:p-6">
+              <div className="flex items-start justify-between gap-4 mb-5 flex-wrap">
+                <input
+                  value={d.name}
+                  onChange={(e) => updateDrum(d.id, { name: e.target.value })}
+                  className="bg-transparent text-lg md:text-xl border-b border-transparent hover:border-[#5c4a33] focus:border-[#c9a15a] outline-none px-1 py-0.5"
+                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                />
+                <button
+                  onClick={() => removeDrum(d.id)}
+                  className="text-[#a8756a] hover:text-[#d99a8c] text-xs tracking-wide uppercase"
+                >
+                  Entfernen
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[#a8977b] text-xs uppercase tracking-wide">Typ</span>
+                      <select
+                        value={d.type}
+                        onChange={(e) => updateDrum(d.id, { type: e.target.value })}
+                        className="bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
+                      >
+                        {Object.keys(REFERENCE_RATIO).map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[#a8977b] text-xs uppercase tracking-wide">Durchmesser (")</span>
+                      <input
+                        type="number"
+                        value={d.diameter}
+                        onChange={(e) => updateDrum(d.id, { diameter: Number(e.target.value) })}
+                        className="bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[#a8977b] text-xs uppercase tracking-wide">Tiefe (")</span>
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={d.depth}
+                        onChange={(e) => updateDrum(d.id, { depth: Number(e.target.value) })}
+                        className="bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[#a8977b] text-xs uppercase tracking-wide">Lugs</span>
+                      <input
+                        type="number"
+                        value={d.lugs}
+                        onChange={(e) => updateDrum(d.id, { lugs: Number(e.target.value) })}
+                        className="bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[#a8977b] text-xs uppercase tracking-wide">Grundton</span>
+                      <select
+                        value={d.note}
+                        onChange={(e) => updateDrum(d.id, { note: e.target.value })}
+                        className="bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
+                      >
+                        {NOTE_NAMES.map((n) => (
+                          <option key={n} value={n}>{n}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[#a8977b] text-xs uppercase tracking-wide">Oktave</span>
+                      <input
+                        type="number"
+                        value={d.octave}
+                        onChange={(e) => updateDrum(d.id, { octave: Number(e.target.value) })}
+                        className="bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="text-xs text-[#8a7a5f] flex flex-wrap gap-x-4 gap-y-1">
+                    <span>Tiefe/Durchmesser: {ratio.toFixed(2)} (Referenz {d.type}: {refRatio.toFixed(2)})</span>
+                    {calibrated ? (
+                      <span className="text-[#c9a15a]">
+                        Kalibrierter Koeffizient aktiv: a = {d.calibratedA.toFixed(3)} (ersetzt Tiefen-Näherung)
+                      </span>
+                    ) : (
+                      <span className={shift > 0.001 ? "text-[#c1666b]" : shift < -0.001 ? "text-[#7fa593]" : ""}>
+                        Multiplikator-Shift: {shift >= 0 ? "+" : ""}{shift.toFixed(3)}
+                        {shift > 0.001 ? " (flacher \u2192 mehr Spannung nötig)" : shift < -0.001 ? " (tiefer \u2192 weniger Spannung nötig)" : " (entspricht Referenz)"}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="border border-[#3a2c1a] rounded-sm p-3 bg-[#170f09]">
+                    <button
+                      onClick={() => updateDrum(d.id, { showCalib: !d.showCalib })}
+                      className="text-xs uppercase tracking-wide text-[#c9a15a] hover:text-[#e8c07a]"
+                    >
+                      {d.showCalib ? "\u2212" : "+"} Kalibrieren {calibrated ? "(aktiv)" : ""}
+                    </button>
+                    {d.showCalib && (
+                      <div className="mt-3 space-y-3">
+                        <p className="text-xs text-[#8a7a5f] leading-relaxed">
+                          Stimme beide Felle unisono auf einen beliebigen Lug-Wert, schlage die Trommel
+                          mittig an (auf Ständer) und miss die reale Fundamentalfrequenz mit dem
+                          Tunebot. Trag beide Werte ein &mdash; daraus wird dein echter Koeffizient
+                          berechnet und ersetzt die Schätzung oben.
+                        </p>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <label className="flex flex-col gap-1">
+                            <span className="text-[#a8977b] text-xs uppercase tracking-wide">Lug-Frequenz (unisono)</span>
+                            <input
+                              type="number"
+                              placeholder="z.B. 172"
+                              value={d.calibLugInput}
+                              onChange={(e) => updateDrum(d.id, { calibLugInput: e.target.value })}
+                              className="bg-[#211910] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
+                            />
+                          </label>
+                          <label className="flex flex-col gap-1">
+                            <span className="text-[#a8977b] text-xs uppercase tracking-wide">Gemessene Fundamentalfreq.</span>
+                            <input
+                              type="number"
+                              placeholder="z.B. 98"
+                              value={d.calibFundInput}
+                              onChange={(e) => updateDrum(d.id, { calibFundInput: e.target.value })}
+                              className="bg-[#211910] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
+                            />
+                          </label>
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => applyCalibration(d)}
+                            className="text-xs uppercase tracking-wide bg-[#c9a15a] text-[#1a140d] px-3 py-1.5 rounded-sm hover:bg-[#e8c07a]"
+                          >
+                            Übernehmen
+                          </button>
+                          {calibrated && (
+                            <button
+                              onClick={() => resetCalibration(d.id)}
+                              className="text-xs uppercase tracking-wide text-[#a8756a] hover:text-[#d99a8c] px-3 py-1.5"
+                            >
+                              Zurücksetzen
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[#a8977b] text-xs uppercase tracking-wide">Resonance-Modus</span>
+                      <select
+                        value={d.mode}
+                        onChange={(e) => updateDrum(d.id, { mode: e.target.value })}
+                        className="bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
+                      >
+                        {Object.entries(RESONANCE_MODES).map(([key, m]) => (
+                          <option key={key} value={key}>{m.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                    {d.mode !== "maximum" && (
+                      <label className="flex flex-col gap-1">
+                        <span className="text-[#a8977b] text-xs uppercase tracking-wide">Höheres Fell</span>
+                        <select
+                          value={d.higherHead}
+                          onChange={(e) => updateDrum(d.id, { higherHead: e.target.value })}
+                          className="bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
+                        >
+                          <option value="bottom">Resonanzfell (unten)</option>
+                          <option value="top">Schlagfell (oben)</option>
+                        </select>
+                      </label>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-[#8a7a5f] italic">{mode.desc}</p>
+
+                  <div className="flex gap-6 pt-2 border-t border-[#3a2c1a] items-end flex-wrap">
+                    <div>
+                      <p className="text-[#a8977b] text-xs uppercase tracking-wide mb-1">Grundton (Trommelklang)</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-lg" style={{ fontFamily: "ui-monospace, monospace" }}>
+                          {fundamentalHz.toFixed(1)} Hz
+                        </p>
+                        <button
+                          onClick={() => handlePlayDrum(fundamentalHz, top, bottom)}
+                          title="Trommelklang abspielen"
+                          className="w-7 h-7 rounded-full border border-[#c9a15a] text-[#c9a15a] hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
+                        >
+                          ▶
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[#c1666b] text-xs uppercase tracking-wide mb-1">Schlagfell (Lug)</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-lg" style={{ fontFamily: "ui-monospace, monospace" }}>
+                          {top.toFixed(1)} Hz
+                        </p>
+                        <button
+                          onClick={() => handlePlay(top)}
+                          title="Ton abspielen"
+                          className="w-7 h-7 rounded-full border border-[#c1666b] text-[#c1666b] hover:bg-[#c1666b] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
+                        >
+                          ▶
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[#7fa593] text-xs uppercase tracking-wide mb-1">Resofell (Lug)</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-lg" style={{ fontFamily: "ui-monospace, monospace" }}>
+                          {bottom.toFixed(1)} Hz
+                        </p>
+                        <button
+                          onClick={() => handlePlay(bottom)}
+                          title="Ton abspielen"
+                          className="w-7 h-7 rounded-full border border-[#7fa593] text-[#7fa593] hover:bg-[#7fa593] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
+                        >
+                          ▶
+                        </button>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handlePlayBoth(top, bottom)}
+                      className="text-xs uppercase tracking-wide text-[#c9a15a] border border-[#c9a15a] rounded-sm px-3 py-1.5 hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors"
+                    >
+                      ▶ Beide nacheinander
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center gap-2 justify-center">
+                  <LugRing lugs={d.lugs} topHz={top} bottomHz={bottom} />
+                  <p className="text-[10px] text-[#8a7a5f] uppercase tracking-wide">Lug-Positionen</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        <button
+          onClick={addDrum}
+          className="w-full border border-dashed border-[#5c4a33] rounded-sm py-3 text-[#c9a15a] hover:border-[#c9a15a] hover:bg-[#211910] transition-colors text-sm uppercase tracking-wide"
+        >
+          + Trommel hinzufügen
+        </button>
+
+        <footer className="pt-6 text-xs text-[#6b5d47] leading-relaxed border-t border-[#3a2c1a] space-y-2">
+          <p>
+            Formel nach Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = Grundton
+            &times; 1,75 (beide Felle); High = &times;1,5 / &times;1,85; Medium = &times;1,4 / &times;2,0;
+            Low = &times;1,2 / &times;2,3.
+          </p>
+          <p>
+            <strong className="text-[#8a7a5f]">Zum Tiefen-Einfluss:</strong> Es gibt dafür keine offizielle
+            Tune-Bot-Formel &mdash; laut zugehörigem Patent wird der reale Multiplikator pro Trommel
+            kalibriert/gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine
+            eigene, plausible Näherung basierend auf dem Verhältnis Tiefe/Durchmesser im Vergleich
+            zu einem typischen Referenzwert je Trommelart &mdash; kein bestätigter Industriestandard.
+            Nutze sie als groben Startpunkt, nicht als exakten Zielwert.
+          </p>
+          <p>
+            <strong className="text-[#8a7a5f]">Kalibrieren:</strong> Trägst du bei einer Trommel
+            eine gemessene Lug- und Fundamentalfrequenz ein, wird daraus dein realer Koeffizient
+            (a = Lug ÷ Fundamental) berechnet. Dieser ersetzt dann die Tiefen-Näherung für genau
+            diese Trommel &mdash; deutlich präziser, weil Kesselmaterial, Felltyp und Bauart darin
+            bereits stecken.
+          </p>
+          <p>
+            <strong className="text-[#8a7a5f]">Zum Ton-Preview:</strong> Die ▶-Buttons bei Schlag-/
+            Resofell spielen einen reinen Sinuston bei der jeweiligen Lug-Zielfrequenz. Der ▶-Button
+            beim Grundton simuliert stattdessen näherungsweise den <em>gekoppelten</em> Klang der
+            ganzen Trommel (Fundamentalton plus leise Fell-Partialtöne und Attack-Transient) &mdash;
+            beides sind Höreinschätzungen zur Orientierung, kein realistischer Fell- oder Kesselklang.
+          </p>
+        </footer>
+      </main>
+    </div>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<TunebotCalculator />);
+</script>
+</body>
+</html>
