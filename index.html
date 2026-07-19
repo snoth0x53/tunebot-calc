@@ -188,6 +188,13 @@
       playTone(ctx, topHz);
       setTimeout(() => playTone(ctx, bottomHz), 700);
     };
+    const handlePrint = () => {
+      const prevTitle = document.title;
+      document.title = `Tunebot - ${setName || "Set"}`;
+      window.print();
+      document.title = prevTitle;
+    };
+    const [setName, setSetName] = useState("Rogers XP8");
     const [drums, setDrums] = useState(
       DRUM_PRESETS.map((d, i) => ({
         id: i,
@@ -247,10 +254,19 @@
           .drum-card { break-inside: avoid; page-break-inside: avoid; margin-bottom: 16px; }
           input, select { border: none !important; padding: 0 !important; -webkit-appearance: none; appearance: none; }
         }
-      `), /* @__PURE__ */ React.createElement("header", { className: "border-b border-[#3a2c1a] px-6 py-8 md:px-10" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-5xl mx-auto flex items-start justify-between gap-4 flex-wrap" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c9a15a] text-xs tracking-[0.25em] uppercase mb-2" }, "Overtone Labs Formel"), /* @__PURE__ */ React.createElement("h1", { className: "text-3xl md:text-4xl", style: { fontFamily: "'Playfair Display', Georgia, serif" } }, "Tune-Bot Lug-Rechner"), /* @__PURE__ */ React.createElement("p", { className: "mt-2 text-[#a8977b] max-w-xl text-sm leading-relaxed" }, "Grundton w\xE4hlen, Resonance-Modus einstellen \u2014 die Ziel-Frequenz f\xFCr jeden Lug wird nach der offiziellen Tune-Bot-Formel berechnet."), /* @__PURE__ */ React.createElement("p", { className: "print-only text-xs text-[#6b5d47] mt-2" }, "Ausgedruckt am ", (/* @__PURE__ */ new Date()).toLocaleDateString("de-DE"))), /* @__PURE__ */ React.createElement(
+      `), /* @__PURE__ */ React.createElement("header", { className: "border-b border-[#3a2c1a] px-6 py-8 md:px-10" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-5xl mx-auto flex items-start justify-between gap-4 flex-wrap" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c9a15a] text-xs tracking-[0.25em] uppercase mb-2" }, "Overtone Labs Formel"), /* @__PURE__ */ React.createElement("h1", { className: "text-3xl md:text-4xl", style: { fontFamily: "'Playfair Display', Georgia, serif" } }, "Tune-Bot Lug-Rechner"), /* @__PURE__ */ React.createElement("p", { className: "mt-2 text-[#a8977b] max-w-xl text-sm leading-relaxed" }, "Grundton w\xE4hlen, Resonance-Modus einstellen \u2014 die Ziel-Frequenz f\xFCr jeden Lug wird nach der offiziellen Tune-Bot-Formel berechnet."), /* @__PURE__ */ React.createElement("div", { className: "mt-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Set:"), /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        value: setName,
+        onChange: (e) => setSetName(e.target.value),
+        placeholder: "z.B. Rogers XP8, Zweitset...",
+        className: "bg-transparent text-lg border-b border-transparent hover:border-[#5c4a33] focus:border-[#c9a15a] outline-none px-1 py-0.5",
+        style: { fontFamily: "'Playfair Display', Georgia, serif" }
+      }
+    )), /* @__PURE__ */ React.createElement("p", { className: "print-only text-xs text-[#6b5d47] mt-2" }, "Ausgedruckt am ", (/* @__PURE__ */ new Date()).toLocaleDateString("de-DE"))), /* @__PURE__ */ React.createElement(
       "button",
       {
-        onClick: () => window.print(),
+        onClick: handlePrint,
         className: "no-print shrink-0 text-xs uppercase tracking-wide border border-[#c9a15a] text-[#c9a15a] rounded-sm px-4 py-2.5 hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors"
       },
       "\u{1F5A8} Drucken / Als PDF speichern"
