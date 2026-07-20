@@ -109,50 +109,49 @@
     noise.start(now);
     noise.stop(now + 0.09);
   }
-  function autoCorrelate(buf, sampleRate) {
-    let SIZE = buf.length;
+  function detectPitchYIN(buf, sampleRate, threshold = 0.15) {
+    const SIZE = buf.length;
+    const halfSize = Math.floor(SIZE / 2);
     let rms = 0;
     for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
     rms = Math.sqrt(rms / SIZE);
-    if (rms < 0.01) return -1;
-    let r1 = 0, r2 = SIZE - 1;
-    const thres = 0.2;
-    for (let i = 0; i < SIZE / 2; i++) {
-      if (Math.abs(buf[i]) < thres) {
-        r1 = i;
+    if (rms < 0.01) return { freq: -1, confidence: 0 };
+    const diff = new Float32Array(halfSize);
+    for (let tau = 1; tau < halfSize; tau++) {
+      let sum = 0;
+      for (let i = 0; i < halfSize; i++) {
+        const delta = buf[i] - buf[i + tau];
+        sum += delta * delta;
+      }
+      diff[tau] = sum;
+    }
+    const cmnd = new Float32Array(halfSize);
+    cmnd[0] = 1;
+    let runningSum = 0;
+    for (let tau = 1; tau < halfSize; tau++) {
+      runningSum += diff[tau];
+      cmnd[tau] = runningSum > 0 ? diff[tau] * tau / runningSum : 1;
+    }
+    let tauEstimate = -1;
+    for (let tau = 2; tau < halfSize; tau++) {
+      if (cmnd[tau] < threshold) {
+        while (tau + 1 < halfSize && cmnd[tau + 1] < cmnd[tau]) tau++;
+        tauEstimate = tau;
         break;
       }
     }
-    for (let i = 1; i < SIZE / 2; i++) {
-      if (Math.abs(buf[SIZE - i]) < thres) {
-        r2 = SIZE - i;
-        break;
-      }
+    if (tauEstimate === -1) return { freq: -1, confidence: 0 };
+    let betterTau = tauEstimate;
+    if (tauEstimate > 0 && tauEstimate < halfSize - 1) {
+      const s0 = cmnd[tauEstimate - 1];
+      const s1 = cmnd[tauEstimate];
+      const s2 = cmnd[tauEstimate + 1];
+      const denom = 2 * (2 * s1 - s2 - s0);
+      if (denom !== 0) betterTau = tauEstimate + (s2 - s0) / denom;
     }
-    const trimmed = buf.slice(r1, r2);
-    const n = trimmed.length;
-    if (n < 8) return -1;
-    const c = new Array(n).fill(0);
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n - i; j++) c[i] += trimmed[j] * trimmed[j + i];
-    }
-    let d = 0;
-    while (d + 1 < n && c[d] > c[d + 1]) d++;
-    let maxVal = -1, maxPos = -1;
-    for (let i = d; i < n; i++) {
-      if (c[i] > maxVal) {
-        maxVal = c[i];
-        maxPos = i;
-      }
-    }
-    if (maxPos <= 0 || maxPos >= n - 1) return -1;
-    const x1 = c[maxPos - 1], x2 = c[maxPos], x3 = c[maxPos + 1];
-    const a = (x1 + x3 - 2 * x2) / 2;
-    const b = (x3 - x1) / 2;
-    const shift = a ? -b / (2 * a) : 0;
-    const T0 = maxPos + shift;
-    if (T0 <= 0) return -1;
-    return sampleRate / T0;
+    const freq = sampleRate / betterTau;
+    const confidence = 1 - cmnd[tauEstimate];
+    return { freq, confidence };
   }
   const MIC_RANGE = {
     "Bass Drum": { min: 30, max: 160 },
@@ -230,8 +229,8 @@
           for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
           rms = Math.sqrt(rms / buf.length);
           if (rms > 0.02) {
-            const freq = autoCorrelate(buf, sampleRate);
-            if (freq > minHz && freq < maxHz) {
+            const { freq, confidence } = detectPitchYIN(buf, sampleRate);
+            if (freq > minHz && freq < maxHz && confidence > 0.5) {
               recentRef.current.push(freq);
               if (recentRef.current.length > 5) recentRef.current.shift();
               const sorted = [...recentRef.current].sort((a, b) => a - b);
@@ -262,11 +261,11 @@
       {
         onClick: handleClick,
         title: status === "listening" ? "Stoppen" : "\xDCber Mikrofon messen (l\xE4uft bis du stoppst, mehrmals anschlagen m\xF6glich)",
-        className: "text-[10px] uppercase tracking-wide border rounded-full px-2.5 py-1 transition-colors",
-        style: { borderColor: accent, color: accent }
+        className: "text-sm uppercase tracking-wide border-2 rounded-md px-5 py-2.5 transition-colors font-semibold",
+        style: status === "listening" ? { borderColor: accent, backgroundColor: accent, color: "#1a140d" } : { borderColor: accent, color: accent }
       },
-      status === "listening" ? "\u{1F3A4} stoppen" : "\u{1F3A4} messen"
-    ), measured != null && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: resultClass + " text-xs", style: { fontFamily: "ui-monospace, monospace" } }, measured.toFixed(1), " Hz", delta != null ? ` (${delta >= 0 ? "+" : ""}${delta.toFixed(1)})` : "", status === "listening" ? "\u2026" : ""), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, "kein Ton erkannt", errorMsg ? ` (${errorMsg})` : " \u2014 lauter/n\xE4her versuchen"));
+      status === "listening" ? "\u{1F3A4} Stoppen" : "\u{1F3A4} Messen"
+    ), measured != null && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: resultClass + " text-base", style: { fontFamily: "ui-monospace, monospace" } }, measured.toFixed(1), " Hz", delta != null ? ` (${delta >= 0 ? "+" : ""}${delta.toFixed(1)})` : "", status === "listening" ? "\u2026" : ""), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, "kein Ton erkannt", errorMsg ? ` (${errorMsg})` : " \u2014 lauter/n\xE4her versuchen"));
   }
   const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   function noteToHz(noteName, octave) {
@@ -501,11 +500,11 @@
         className: "bg-transparent text-lg border-b border-transparent hover:border-[#5c4a33] focus:border-[#c9a15a] outline-none px-1 py-0.5",
         style: { fontFamily: "'Playfair Display', Georgia, serif" }
       }
-    )), /* @__PURE__ */ React.createElement("p", { className: "print-only text-xs text-[#6b5d47] mt-2" }, "Ausgedruckt am ", (/* @__PURE__ */ new Date()).toLocaleDateString("de-DE")), /* @__PURE__ */ React.createElement("div", { className: "no-print mt-4 flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Mikrofon:"), micDevices.length === 0 ? /* @__PURE__ */ React.createElement(
+    )), /* @__PURE__ */ React.createElement("p", { className: "print-only text-xs text-[#6b5d47] mt-2" }, "Ausgedruckt am ", (/* @__PURE__ */ new Date()).toLocaleDateString("de-DE")), /* @__PURE__ */ React.createElement("div", { className: "no-print mt-4 flex items-center gap-3 flex-wrap border border-[#5c4a33] bg-[#211910] rounded-md px-4 py-3" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#c9a15a] text-xs uppercase tracking-wide font-semibold" }, "\u{1F3A4} Mikrofon:"), micDevices.length === 0 ? /* @__PURE__ */ React.createElement(
       "button",
       {
         onClick: loadMicDevices,
-        className: "text-xs uppercase tracking-wide text-[#c9a15a] border border-[#c9a15a] rounded-sm px-2.5 py-1 hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors"
+        className: "text-xs uppercase tracking-wide text-[#1a140d] bg-[#c9a15a] border border-[#c9a15a] rounded-sm px-3 py-1.5 hover:bg-[#e8c07a] transition-colors font-semibold"
       },
       "Ger\xE4te laden"
     ) : /* @__PURE__ */ React.createElement(
@@ -513,7 +512,7 @@
       {
         value: micDeviceId,
         onChange: (e) => setMicDeviceId(e.target.value),
-        className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1 text-xs outline-none focus:border-[#c9a15a]"
+        className: "bg-[#170f09] border border-[#c9a15a] rounded-sm px-3 py-1.5 text-sm outline-none focus:border-[#e8c07a] text-[#e8dcc4]"
       },
       /* @__PURE__ */ React.createElement("option", { value: "" }, "Standard-Mikrofon"),
       micDevices.map((d) => /* @__PURE__ */ React.createElement("option", { key: d.deviceId, value: d.deviceId }, d.label || "Mikrofon"))
@@ -713,7 +712,7 @@
         className: "no-print w-full border border-dashed border-[#5c4a33] rounded-sm py-3 text-[#c9a15a] hover:border-[#c9a15a] hover:bg-[#211910] transition-colors text-sm uppercase tracking-wide"
       },
       "+ Trommel hinzuf\xFCgen"
-    ), /* @__PURE__ */ React.createElement("footer", { className: "pt-6 text-xs text-[#6b5d47] leading-relaxed border-t border-[#3a2c1a] space-y-2" }, /* @__PURE__ */ React.createElement("p", null, "Formel nach Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Tiefen-Einfluss:"), " Es gibt daf\xFCr keine offizielle Tune-Bot-Formel \u2014 laut zugeh\xF6rigem Patent wird der reale Multiplikator pro Trommel kalibriert/gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Industriestandard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Kalibrieren:"), " Tr\xE4gst du bei einer Trommel eine gemessene Lug- und Fundamentalfrequenz ein, wird daraus dein realer Koeffizient (a = Lug \xF7 Fundamental) berechnet. Dieser ersetzt dann die Tiefen-N\xE4herung f\xFCr genau diese Trommel \u2014 deutlich pr\xE4ziser, weil Kesselmaterial, Felltyp und Bauart darin bereits stecken."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Ton-Preview:"), " Die \u25B6-Buttons bei Schlag-/ Resofell spielen einen reinen Sinuston bei der jeweiligen Lug-Zielfrequenz. Der \u25B6-Button beim Grundton simuliert stattdessen n\xE4herungsweise den ", /* @__PURE__ */ React.createElement("em", null, "gekoppelten"), " Klang der ganzen Trommel (Fundamentalton plus leise Fell-Partialt\xF6ne und Attack-Transient) \u2014 beides sind H\xF6reinsch\xE4tzungen zur Orientierung, kein realistischer Fell- oder Kesselklang."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Kreuz-Stimmreihenfolge:"), " Die Zahlen im Lug-Kreis zeigen nicht die physische Position, sondern die empfohlene Reihenfolge beim Stimmen (immer zum gegen\xFCberliegenden bzw. \xFCbern\xE4chsten Lug springen, nie im Kreis herum). Formel: Position(Schritt) = \u230ASchritt/2\u230B + (Schritt mod 2) \xD7 \u230AN/2\u230B \u2014 funktioniert f\xFCr jede gerade Lug-Anzahl."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Mikrofon-Messung:"), ' Die "\u{1F3A4} messen"-Buttons h\xF6ren kurz \xFCber das Mikrofon zu, erkennen den Anschlag automatisch und berechnen die Grundfrequenz per Autokorrelation. Funktioniert mit dem eingebauten Mikrofon von Handy/Laptop; f\xFCr genauere Ergebnisse (v.a. bei tiefen Bassdrum-Frequenzen) reicht ein einfaches externes Klemmmikrofon (ca. 15\u201330\xA0\u20AC). Der Browser fragt einmalig um Mikrofon-Erlaubnis. Snare am besten mit ausgeh\xE4ngtem Teppich messen, um Rasseln aus dem Signal fernzuhalten.'), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Profi-Durchschnitt:"), " Diese Option basiert auf einer eigenen Auswertung von \xFCber 90 realen Trommel-Tunings professioneller Drummer, ver\xF6ffentlicht auf tune-bot.com/artists (Stand: eigene Analyse). Snare-Werte (n=22): Schlagfell \xD71,47, Intervall \xD71,29. Tom-Werte (n=60): Schlagfell \xD71,60, Resofell \xD71,92. Bassdrum-Werte (n=14): Schlagfell \xD71,62, Resofell \xD71,82. Offensichtliche Scraping-Duplikate wurden vor der Mittelwertbildung entfernt."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Genauigkeit der Mikrofon-Messung:"), " Ergebnisse werden auf einen plausiblen Frequenzbereich je Trommelart begrenzt (Bassdrum 30\u2013160 Hz, Toms 50\u2013350 Hz, Snare 50\u2013450 Hz), um typische Oktavfehler der Autokorrelation herauszufiltern. Zus\xE4tzlich wird \xFCber die letzten 5 g\xFCltigen Messungen der Median gebildet, um einzelne Ausrei\xDFer zu gl\xE4tten. Trotzdem bleibt die eingebaute Mikrofon-Hardware (Frequenzgang, Abstand, Raumger\xE4usche) der limitierende Faktor \u2014 ein externes Mikrofon n\xE4her am Fell liefert meist zuverl\xE4ssigere Werte als das eingebaute Laptop-/Handy-Mikrofon aus der Distanz."))));
+    ), /* @__PURE__ */ React.createElement("footer", { className: "pt-6 text-xs text-[#6b5d47] leading-relaxed border-t border-[#3a2c1a] space-y-2" }, /* @__PURE__ */ React.createElement("p", null, "Formel nach Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Tiefen-Einfluss:"), " Es gibt daf\xFCr keine offizielle Tune-Bot-Formel \u2014 laut zugeh\xF6rigem Patent wird der reale Multiplikator pro Trommel kalibriert/gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Industriestandard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Kalibrieren:"), " Tr\xE4gst du bei einer Trommel eine gemessene Lug- und Fundamentalfrequenz ein, wird daraus dein realer Koeffizient (a = Lug \xF7 Fundamental) berechnet. Dieser ersetzt dann die Tiefen-N\xE4herung f\xFCr genau diese Trommel \u2014 deutlich pr\xE4ziser, weil Kesselmaterial, Felltyp und Bauart darin bereits stecken."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Ton-Preview:"), " Die \u25B6-Buttons bei Schlag-/ Resofell spielen einen reinen Sinuston bei der jeweiligen Lug-Zielfrequenz. Der \u25B6-Button beim Grundton simuliert stattdessen n\xE4herungsweise den ", /* @__PURE__ */ React.createElement("em", null, "gekoppelten"), " Klang der ganzen Trommel (Fundamentalton plus leise Fell-Partialt\xF6ne und Attack-Transient) \u2014 beides sind H\xF6reinsch\xE4tzungen zur Orientierung, kein realistischer Fell- oder Kesselklang."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Kreuz-Stimmreihenfolge:"), " Die Zahlen im Lug-Kreis zeigen nicht die physische Position, sondern die empfohlene Reihenfolge beim Stimmen (immer zum gegen\xFCberliegenden bzw. \xFCbern\xE4chsten Lug springen, nie im Kreis herum). Formel: Position(Schritt) = \u230ASchritt/2\u230B + (Schritt mod 2) \xD7 \u230AN/2\u230B \u2014 funktioniert f\xFCr jede gerade Lug-Anzahl."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Mikrofon-Messung:"), ' Der "\u{1F3A4} Messen"-Button pro Trommel h\xF6rt \xFCber das Mikrofon zu und berechnet die Grundfrequenz laufend mit dem YIN-Algorithmus (Industriestandard). Funktioniert mit dem eingebauten Mikrofon von Handy/Laptop; f\xFCr genauere Ergebnisse (v.a. bei tiefen Bassdrum-Frequenzen) reicht ein einfaches externes Klemmmikrofon (ca. 15\u201330\xA0\u20AC). Der Browser fragt einmalig um Mikrofon-Erlaubnis. Snare am besten mit ausgeh\xE4ngtem Teppich messen, um Rasseln aus dem Signal fernzuhalten.'), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Profi-Durchschnitt:"), " Diese Option basiert auf einer eigenen Auswertung von \xFCber 90 realen Trommel-Tunings professioneller Drummer, ver\xF6ffentlicht auf tune-bot.com/artists (Stand: eigene Analyse). Snare-Werte (n=22): Schlagfell \xD71,47, Intervall \xD71,29. Tom-Werte (n=60): Schlagfell \xD71,60, Resofell \xD71,92. Bassdrum-Werte (n=14): Schlagfell \xD71,62, Resofell \xD71,82. Offensichtliche Scraping-Duplikate wurden vor der Mittelwertbildung entfernt."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Genauigkeit der Mikrofon-Messung:"), " Ergebnisse werden auf einen plausiblen Frequenzbereich je Trommelart begrenzt (Bassdrum 30\u2013160 Hz, Toms 50\u2013350 Hz, Snare 50\u2013450 Hz) und nur bei ausreichender Zuverl\xE4ssigkeit (YIN-Confidence) \xFCbernommen, um typische Oktavfehler herauszufiltern. Zus\xE4tzlich wird \xFCber die letzten 5 g\xFCltigen Messungen der Median gebildet, um einzelne Ausrei\xDFer zu gl\xE4tten. Trotzdem bleibt die eingebaute Mikrofon-Hardware (Frequenzgang, Abstand, Raumger\xE4usche) der limitierende Faktor \u2014 ein externes Mikrofon n\xE4her am Fell liefert meist zuverl\xE4ssigere Werte als das eingebaute Laptop-/Handy-Mikrofon aus der Distanz."))));
   }
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(/* @__PURE__ */ React.createElement(TunebotCalculator, null));
