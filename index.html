@@ -168,7 +168,7 @@
         const ctx = new Ctx();
         const source = ctx.createMediaStreamSource(stream);
         const analyser = ctx.createAnalyser();
-        analyser.fftSize = 2048;
+        analyser.fftSize = 4096;
         source.connect(analyser);
         const buf = new Float32Array(analyser.fftSize);
         const sampleRate = ctx.sampleRate;
@@ -195,7 +195,7 @@
               } else {
                 setStatus("error");
               }
-            }, 25);
+            }, 70);
             return;
           }
           attempts++;
