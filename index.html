@@ -157,7 +157,18 @@
   function MicMeasureButton({ targetHz, accent = "#c9a15a", deviceId = "" }) {
     const [status, setStatus] = useState("idle");
     const [measured, setMeasured] = useState(null);
-    const handleMeasure = async () => {
+    const stopFnRef = useRef(null);
+    const rafRef = useRef(null);
+    const stopListening = () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (stopFnRef.current) stopFnRef.current();
+      setStatus((s) => s === "listening" ? "done" : s);
+    };
+    const handleClick = async () => {
+      if (status === "listening") {
+        stopListening();
+        return;
+      }
       setStatus("listening");
       setMeasured(null);
       try {
@@ -177,41 +188,32 @@
         source.connect(analyser);
         const buf = new Float32Array(analyser.fftSize);
         const sampleRate = ctx.sampleRate;
-        let onsetDetected = false;
-        let attempts = 0;
-        const cleanup = () => {
+        stopFnRef.current = () => {
           stream.getTracks().forEach((t) => t.stop());
           ctx.close();
         };
-        const poll = () => {
+        const startTime = performance.now();
+        let gotAny = false;
+        const loop = () => {
           analyser.getFloatTimeDomainData(buf);
           let rms = 0;
           for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
           rms = Math.sqrt(rms / buf.length);
-          if (!onsetDetected && rms > 0.025) {
-            onsetDetected = true;
-            setTimeout(() => {
-              analyser.getFloatTimeDomainData(buf);
-              const freq = autoCorrelate(buf, sampleRate);
-              cleanup();
-              if (freq > 20 && freq < 1e3) {
-                setMeasured(freq);
-                setStatus("done");
-              } else {
-                setStatus("error");
-              }
-            }, 70);
+          if (rms > 0.02) {
+            const freq = autoCorrelate(buf, sampleRate);
+            if (freq > 20 && freq < 1e3) {
+              setMeasured(freq);
+              gotAny = true;
+            }
+          }
+          if (performance.now() - startTime > 4e3) {
+            stopListening();
+            if (!gotAny) setStatus("error");
             return;
           }
-          attempts++;
-          if (attempts > 600) {
-            cleanup();
-            setStatus("error");
-            return;
-          }
-          requestAnimationFrame(poll);
+          rafRef.current = requestAnimationFrame(loop);
         };
-        poll();
+        loop();
       } catch (e) {
         setStatus("error");
       }
@@ -222,14 +224,13 @@
     return /* @__PURE__ */ React.createElement("span", { className: "no-print inline-flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement(
       "button",
       {
-        onClick: handleMeasure,
-        disabled: status === "listening",
-        title: "\xDCber Mikrofon messen",
-        className: "text-[10px] uppercase tracking-wide border rounded-full px-2.5 py-1 transition-colors disabled:opacity-50",
+        onClick: handleClick,
+        title: status === "listening" ? "Stoppen" : "\xDCber Mikrofon messen (4s live, mehrmals anschlagen)",
+        className: "text-[10px] uppercase tracking-wide border rounded-full px-2.5 py-1 transition-colors",
         style: { borderColor: accent, color: accent }
       },
-      status === "listening" ? "\u{1F3A4} h\xF6rt\u2026" : "\u{1F3A4} messen"
-    ), status === "done" && measured != null && /* @__PURE__ */ React.createElement("span", { className: close ? "text-[#7fa593] text-xs" : "text-[#c1666b] text-xs", style: { fontFamily: "ui-monospace, monospace" } }, measured.toFixed(1), " Hz (", delta >= 0 ? "+" : "", delta.toFixed(1), ")"), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, "kein Ton erkannt"));
+      status === "listening" ? "\u{1F3A4} stoppen" : "\u{1F3A4} messen"
+    ), measured != null && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: close ? "text-[#7fa593] text-xs" : "text-[#c1666b] text-xs", style: { fontFamily: "ui-monospace, monospace" } }, measured.toFixed(1), " Hz (", delta >= 0 ? "+" : "", delta.toFixed(1), ")", status === "listening" ? "\u2026" : ""), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, "kein Ton erkannt \u2014 lauter/n\xE4her versuchen"));
   }
   const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   function noteToHz(noteName, octave) {
