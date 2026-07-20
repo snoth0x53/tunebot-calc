@@ -241,9 +241,10 @@
         setErrorMsg(e.name || String(e));
       }
     };
-    const delta = measured != null ? measured - targetHz : null;
+    const delta = measured != null && targetHz != null ? measured - targetHz : null;
     const deltaPct = delta != null ? Math.abs(delta / targetHz) * 100 : null;
     const close = deltaPct != null && deltaPct < 2;
+    const resultClass = targetHz != null ? close ? "text-[#7fa593]" : "text-[#c1666b]" : "text-[#e8dcc4]";
     return /* @__PURE__ */ React.createElement("span", { className: "no-print inline-flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement(
       "button",
       {
@@ -253,7 +254,7 @@
         style: { borderColor: accent, color: accent }
       },
       status === "listening" ? "\u{1F3A4} stoppen" : "\u{1F3A4} messen"
-    ), measured != null && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: close ? "text-[#7fa593] text-xs" : "text-[#c1666b] text-xs", style: { fontFamily: "ui-monospace, monospace" } }, measured.toFixed(1), " Hz (", delta >= 0 ? "+" : "", delta.toFixed(1), ")", status === "listening" ? "\u2026" : ""), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, "kein Ton erkannt", errorMsg ? ` (${errorMsg})` : " \u2014 lauter/n\xE4her versuchen"));
+    ), measured != null && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: resultClass + " text-xs", style: { fontFamily: "ui-monospace, monospace" } }, measured.toFixed(1), " Hz", delta != null ? ` (${delta >= 0 ? "+" : ""}${delta.toFixed(1)})` : "", status === "listening" ? "\u2026" : ""), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, "kein Ton erkannt", errorMsg ? ` (${errorMsg})` : " \u2014 lauter/n\xE4her versuchen"));
   }
   const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   function noteToHz(noteName, octave) {
@@ -406,11 +407,6 @@
     const handlePlayDrum = (fundamentalHz, topHz, bottomHz) => {
       const ctx = getAudioCtx(audioCtxRef);
       playDrumTone(ctx, fundamentalHz, topHz, bottomHz);
-    };
-    const handlePlayBoth = (topHz, bottomHz) => {
-      const ctx = getAudioCtx(audioCtxRef);
-      playTone(ctx, topHz);
-      setTimeout(() => playTone(ctx, bottomHz), 700);
     };
     const handlePrint = () => {
       const prevTitle = document.title;
@@ -673,7 +669,7 @@
           className: "no-print w-7 h-7 rounded-full border border-[#c9a15a] text-[#c9a15a] hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
-      )), /* @__PURE__ */ React.createElement("div", { className: "mt-1.5" }, /* @__PURE__ */ React.createElement(MicMeasureButton, { targetHz: fundamentalHz, accent: "#c9a15a", deviceId: micDeviceId }))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c1666b] text-xs uppercase tracking-wide mb-1" }, "Schlagfell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, top.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
+      ))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c1666b] text-xs uppercase tracking-wide mb-1" }, "Schlagfell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, top.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => handlePlay(top),
@@ -681,7 +677,7 @@
           className: "no-print w-7 h-7 rounded-full border border-[#c1666b] text-[#c1666b] hover:bg-[#c1666b] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
-      )), /* @__PURE__ */ React.createElement("div", { className: "mt-1.5" }, /* @__PURE__ */ React.createElement(MicMeasureButton, { targetHz: top, accent: "#c1666b", deviceId: micDeviceId }))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#7fa593] text-xs uppercase tracking-wide mb-1" }, "Resofell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, bottom.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
+      ))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#7fa593] text-xs uppercase tracking-wide mb-1" }, "Resofell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, bottom.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => handlePlay(bottom),
@@ -689,14 +685,7 @@
           className: "no-print w-7 h-7 rounded-full border border-[#7fa593] text-[#7fa593] hover:bg-[#7fa593] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
-      )), /* @__PURE__ */ React.createElement("div", { className: "mt-1.5" }, /* @__PURE__ */ React.createElement(MicMeasureButton, { targetHz: bottom, accent: "#7fa593", deviceId: micDeviceId }))), /* @__PURE__ */ React.createElement(
-        "button",
-        {
-          onClick: () => handlePlayBoth(top, bottom),
-          className: "no-print text-xs uppercase tracking-wide text-[#c9a15a] border border-[#c9a15a] rounded-sm px-3 py-1.5 hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors"
-        },
-        "\u25B6 Beide nacheinander"
-      ))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-2 justify-center" }, /* @__PURE__ */ React.createElement(LugRing, { lugs: d.lugs, topHz: top, idPrefix: d.id }), /* @__PURE__ */ React.createElement("p", { className: "text-[10px] text-[#8a7a5f] uppercase tracking-wide text-center max-w-[160px]" }, "Zahlen = Kreuz-Stimmreihenfolge"))));
+      )))), /* @__PURE__ */ React.createElement("div", { className: "pt-1" }, /* @__PURE__ */ React.createElement("p", { className: "text-[#a8977b] text-[10px] uppercase tracking-wide mb-1" }, "Ist-Wert messen (mit Mikrofon abgleichen)"), /* @__PURE__ */ React.createElement(MicMeasureButton, { accent: "#c9a15a", deviceId: micDeviceId }))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-2 justify-center" }, /* @__PURE__ */ React.createElement(LugRing, { lugs: d.lugs, topHz: top, idPrefix: d.id }), /* @__PURE__ */ React.createElement("p", { className: "text-[10px] text-[#8a7a5f] uppercase tracking-wide text-center max-w-[160px]" }, "Zahlen = Kreuz-Stimmreihenfolge"))));
     }), /* @__PURE__ */ React.createElement(
       "button",
       {
