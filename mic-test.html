@@ -182,7 +182,7 @@
       audioCtx = new Ctx();
       source = audioCtx.createMediaStreamSource(stream);
       analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 2048;
+      analyser.fftSize = 4096;
       analyser.smoothingTimeConstant = 0.3;
       source.connect(analyser);
 
@@ -282,8 +282,14 @@
     if (!onsetActive && rms > 0.05) {
       onsetActive = true;
       if (freq > 20 && freq < 1000) {
-        hits.push({ time: new Date().toLocaleTimeString('de-DE'), freq, rms });
-        renderHitLog();
+        setTimeout(() => {
+          analyser.getFloatTimeDomainData(buf);
+          const settled = autoCorrelate(buf, audioCtx.sampleRate);
+          if (settled.freq > 20 && settled.freq < 1000) {
+            hits.push({ time: new Date().toLocaleTimeString('de-DE'), freq: settled.freq, rms: settled.rms });
+            renderHitLog();
+          }
+        }, 70);
       }
     } else if (onsetActive && rms < 0.02) {
       onsetActive = false;
