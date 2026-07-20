@@ -81,10 +81,11 @@ professioneller Drummer basiert. Kernergebnisse:
   straffer gestimmt.
 
 Die vollständigen Rohdaten und Berechnungen liegen als CSV bei:
-`tune-bot-artist-tunings-analyse.csv` (alle Einzelwerte) und
-`tune-bot-analyse-zusammenfassung.csv` (verdichtete Statistik). Offensichtliche
-Scraping-Duplikate auf der Artists-Seite wurden vor der Mittelwertbildung markiert
-bzw. entfernt.
+[`data/tune-bot-artist-tunings-analyse.csv`](data/tune-bot-artist-tunings-analyse.csv)
+(alle Einzelwerte) und
+[`data/tune-bot-analyse-zusammenfassung.csv`](data/tune-bot-analyse-zusammenfassung.csv)
+(verdichtete Statistik). Offensichtliche Scraping-Duplikate auf der Artists-Seite
+wurden vor der Mittelwertbildung markiert bzw. entfernt.
 
 ## Mikrofon-Test-Tool
 
