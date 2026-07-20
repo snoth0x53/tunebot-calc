@@ -1,0 +1,100 @@
+Artist;Trommeltyp;Groesse_Zoll;Grundton_Hz;Schlagfell_Hz;Resofell_Hz;Top_durch_Grundton;Bottom_durch_Top;Anmerkung
+Dennis Chambers;Snare;14;218;340;381;1.56;1.121;
+Dennis Chambers;Snare;10;142;246;242;1.732;0.984;
+Mark Schulman;Snare;14;165;239;386;1.448;1.615;6.5x14
+Mark Schulman;Snare;12;208;320;362;1.538;1.131;6x12
+Rich Redmond;Snare;14;205;332;342;1.62;1.03;
+Jason Bittner;Snare;14;209;291;444;1.392;1.526;
+Arejay Hale;Snare;14;176;261;349;1.483;1.337;
+Morgan Rose;Snare;14;209;291;400;1.392;1.375;
+Morgan Rose;Snare;14;209;280;400;1.34;1.429;Aux Snare
+Tony Smith;Snare;14;216;306;390;1.417;1.275;
+Tommy Rickard;Snare;14;209;328;394;1.569;1.201;Bell Brass
+Nate Morton;Snare;14;195;280;400;1.436;1.429;
+Jost Nickel;Snare;14;173;309;385;1.786;1.246;
+Robin Goodridge;Snare;14;174;250;360;1.437;1.44;
+Kris Mazzarisi;Snare;14;183;266;364;1.454;1.368;
+Sergio Bellotti;Snare;14;196;266;398;1.357;1.496;
+Rodrigo Recabarren;Snare;14;216;297;400;1.375;1.347;14x5.5
+Doug Meola;Snare;14;195;280;400;1.436;1.429;
+Steve Chen;Snare;13;193;289;400;1.497;1.384;
+Brian Karl;Snare;14;191;291;322;1.524;1.107;
+Riaan Diedericks;Snare;14;208;299;298;1.438;0.997;
+Harald Tanschek;Snare;14;230;234;257;1.017;1.098;Ausreisser: fast unisono
+Dennis Chambers;Tom;8;179;331;286;1.849;0.864;
+Dennis Chambers;Tom;12;106;154;216;1.453;1.403;
+Dennis Chambers;Tom;14;87;123;182;1.414;1.48;
+Dennis Chambers;Tom;16;71;81;184;1.141;2.272;
+Mark Schulman;Tom;10;147;193;213;1.313;1.104;
+Mark Schulman;Tom;12;110;158;180;1.436;1.139;
+Mark Schulman;Tom;14;83;120;130;1.446;1.083;
+Mark Schulman;Tom;16;65;95;115;1.462;1.211;
+Mark Schulman;Tom;18;55;93;104;1.691;1.118;
+Rich Redmond;Tom;12;115;125;308;1.087;2.464;
+Rich Redmond;Tom;16;76;105;178;1.382;1.695;
+Rich Redmond;Tom;18;65;80;136;1.231;1.7;
+Jason Bittner;Tom;10;139;220;260;1.583;1.182;
+Jason Bittner;Tom;12;109;170;207;1.56;1.218;
+Jason Bittner;Tom;14;81;153;127;1.889;0.83;
+Jason Bittner;Tom;16;64;118;103;1.844;0.873;
+Arejay Hale;Tom;12;208;320;362;1.538;1.131;Verdacht Dateneingabefehler (=Mark Schulman Snare)
+Arejay Hale;Tom;14;83;163;174;1.964;1.067;
+Arejay Hale;Tom;16;60;130;138;2.167;1.062;
+Arejay Hale;Tom;18;56;97;103;1.732;1.062;
+Morgan Rose;Tom;10;139;220;260;1.583;1.182;
+Morgan Rose;Tom;12;109;170;207;1.56;1.218;
+Morgan Rose;Tom;14;81;153;127;1.889;0.83;
+Morgan Rose;Tom;16;64;118;103;1.844;0.873;
+Morgan Rose;Tom;18;50;82;87;1.64;1.061;
+Tony Smith;Tom;12;110;165;217;1.5;1.315;
+Tony Smith;Tom;13;87;136;171;1.563;1.257;
+Tony Smith;Tom;14;66;106;119;1.606;1.123;
+Tony Smith;Tom;16;55;83;110;1.509;1.325;
+Tommy Rickard;Tom;12;124;208;220;1.677;1.058;
+Tommy Rickard;Tom;13;114;186;206;1.632;1.108;
+Tommy Rickard;Tom;16;65;108;115;1.662;1.065;
+Nate Morton;Tom;10;160;275;308;1.719;1.12;
+Nate Morton;Tom;12;115;125;308;1.087;2.464;"Duplikat von Rich Redmond 12"" - vermutl. Scraping-Fehler"
+Nate Morton;Tom;13;114;186;206;1.632;1.108;"Duplikat von Tommy Rickard 13"" - vermutl. Scraping-Fehler"
+Nate Morton;Tom;14;85;125;125;1.471;1.0;
+Nate Morton;Tom;16;64;110;110;1.719;1.0;
+Nate Morton;Tom;18;65;80;136;1.231;1.7;"Duplikat von Rich Redmond 18"" - vermutl. Scraping-Fehler"
+Jost Nickel;Tom;12;130;194;240;1.492;1.237;
+Jost Nickel;Tom;16;64;96;119;1.5;1.24;
+Robin Goodridge;Tom;12;111;185;196;1.667;1.059;
+Robin Goodridge;Tom;16;65;100;124;1.538;1.24;
+Robin Goodridge;Tom;18;56;84;110;1.5;1.31;
+Kris Mazzarisi;Tom;12;105;162;182;1.543;1.123;
+Sergio Bellotti;Tom;10;131;225;225;1.718;1.0;
+Sergio Bellotti;Tom;12;110;189;189;1.718;1.0;
+Sergio Bellotti;Tom;14;87;150;150;1.724;1.0;
+Rodrigo Recabarren;Tom;12;151;252;272;1.669;1.079;12x8
+Rodrigo Recabarren;Tom;14;104;147;218;1.413;1.483;14x14 Floor Tom
+Steve Chen;Tom;10;120;188;200;1.567;1.064;
+Steve Chen;Tom;14;71;117;125;1.648;1.068;
+Brian Karl;Tom;14;131;198;260;1.511;1.313;
+Brian Karl;Tom;16;89;160;153;1.798;0.956;
+Brian Karl;Tom;18;71;135;115;1.901;0.852;
+Riaan Diedericks;Tom;10;110;195;184;1.773;0.944;
+Riaan Diedericks;Tom;14;73;130;123;1.781;0.946;
+Harald Tanschek;Tom;10;146;250;267;1.712;1.068;
+Harald Tanschek;Tom;12;114;187;189;1.64;1.011;
+Harald Tanschek;Tom;14;78;133;142;1.705;1.068;
+Harald Tanschek;Tom;16;60;109;117;1.817;1.073;
+Dennis Chambers;Bass Drum;22;46;69;61;1.5;0.884;
+Mark Schulman;Bass Drum;26;32;48;63;1.5;1.312;
+Rich Redmond;Bass Drum;24;33;60;65;1.818;1.083;
+Jason Bittner;Bass Drum;22;56;92;92;1.643;1.0;
+John Riley;Bass Drum;20;44;77;77;1.75;1.0;
+Arejay Hale;Bass Drum;24;33;60;65;1.818;1.083;Duplikat von Rich Redmond - vermutl. Scraping-Fehler
+Morgan Rose;Bass Drum;22;56;92;92;1.643;1.0;Duplikat von Jason Bittner - vermutl. Scraping-Fehler
+Tony Smith;Bass Drum;22;37;60;68;1.622;1.133;
+Tommy Rickard;Bass Drum;22;42;70;75;1.667;1.071;
+Nate Morton;Bass Drum;22;47;80;80;1.702;1.0;
+Kris Mazzarisi;Bass Drum;22;34;66;69;1.941;1.045;
+Sergio Bellotti;Bass Drum;20;44;64;96;1.455;1.5;
+Rodrigo Recabarren;Bass Drum;18;73;113;153;1.548;1.354;18x14
+Doug Meola;Bass Drum;24;33;60;65;1.818;1.083;Duplikat von Rich Redmond - vermutl. Scraping-Fehler
+Steve Chen;Bass Drum;20;45;76;84;1.689;1.105;
+Brian Karl;Bass Drum;24;38;67;48;1.763;0.716;Ungewoehnlich: Reso < Batter
+Harald Tanschek;Bass Drum;20;52;55;86;1.058;1.564;
