@@ -151,7 +151,10 @@
     const shift = a ? -b / (2 * a) : 0;
     const T0 = maxPos + shift;
     if (T0 <= 0) return { freq: -1, rms };
-    return { freq: sampleRate / T0, rms };
+    const freq = sampleRate / T0;
+    // Einfacher Plausibilitäts-Filter (Standardbereich für Trommeln, reduziert Oktavfehler)
+    if (freq < 40 || freq > 450) return { freq: -1, rms };
+    return { freq, rms };
   }
 
   async function populateDevices() {
