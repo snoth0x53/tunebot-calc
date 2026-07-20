@@ -228,9 +228,9 @@
           let rms = 0;
           for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
           rms = Math.sqrt(rms / buf.length);
-          if (rms > 0.02) {
+          if (rms > 0.015) {
             const { freq, confidence } = detectPitchYIN(buf, sampleRate);
-            if (freq > minHz && freq < maxHz && confidence > 0.5) {
+            if (freq > minHz && freq < maxHz && confidence > 0.3) {
               recentRef.current.push(freq);
               if (recentRef.current.length > 5) recentRef.current.shift();
               const sorted = [...recentRef.current].sort((a, b) => a - b);
