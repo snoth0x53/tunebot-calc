@@ -154,7 +154,7 @@
     if (T0 <= 0) return -1;
     return sampleRate / T0;
   }
-  function MicMeasureButton({ targetHz, accent = "#c9a15a" }) {
+  function MicMeasureButton({ targetHz, accent = "#c9a15a", deviceId = "" }) {
     const [status, setStatus] = useState("idle");
     const [measured, setMeasured] = useState(null);
     const handleMeasure = async () => {
@@ -162,7 +162,12 @@
       setMeasured(null);
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            deviceId: deviceId ? { exact: deviceId } : void 0
+          }
         });
         const Ctx = window.AudioContext || window.webkitAudioContext;
         const ctx = new Ctx();
@@ -183,7 +188,7 @@
           let rms = 0;
           for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
           rms = Math.sqrt(rms / buf.length);
-          if (!onsetDetected && rms > 0.05) {
+          if (!onsetDetected && rms > 0.025) {
             onsetDetected = true;
             setTimeout(() => {
               analyser.getFloatTimeDomainData(buf);
@@ -199,7 +204,7 @@
             return;
           }
           attempts++;
-          if (attempts > 400) {
+          if (attempts > 600) {
             cleanup();
             setStatus("error");
             return;
@@ -359,6 +364,17 @@
   }
   function TunebotCalculator() {
     const audioCtxRef = useRef(null);
+    const [micDeviceId, setMicDeviceId] = useState("");
+    const [micDevices, setMicDevices] = useState([]);
+    const loadMicDevices = async () => {
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+        s.getTracks().forEach((t) => t.stop());
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        setMicDevices(devices.filter((d) => d.kind === "audioinput"));
+      } catch (e) {
+      }
+    };
     const handlePlay = (freqHz) => {
       const ctx = getAudioCtx(audioCtxRef);
       playTone(ctx, freqHz);
@@ -453,7 +469,23 @@
         className: "bg-transparent text-lg border-b border-transparent hover:border-[#5c4a33] focus:border-[#c9a15a] outline-none px-1 py-0.5",
         style: { fontFamily: "'Playfair Display', Georgia, serif" }
       }
-    )), /* @__PURE__ */ React.createElement("p", { className: "print-only text-xs text-[#6b5d47] mt-2" }, "Ausgedruckt am ", (/* @__PURE__ */ new Date()).toLocaleDateString("de-DE"))), /* @__PURE__ */ React.createElement(
+    )), /* @__PURE__ */ React.createElement("p", { className: "print-only text-xs text-[#6b5d47] mt-2" }, "Ausgedruckt am ", (/* @__PURE__ */ new Date()).toLocaleDateString("de-DE")), /* @__PURE__ */ React.createElement("div", { className: "no-print mt-4 flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Mikrofon:"), micDevices.length === 0 ? /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: loadMicDevices,
+        className: "text-xs uppercase tracking-wide text-[#c9a15a] border border-[#c9a15a] rounded-sm px-2.5 py-1 hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors"
+      },
+      "Ger\xE4te laden"
+    ) : /* @__PURE__ */ React.createElement(
+      "select",
+      {
+        value: micDeviceId,
+        onChange: (e) => setMicDeviceId(e.target.value),
+        className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1 text-xs outline-none focus:border-[#c9a15a]"
+      },
+      /* @__PURE__ */ React.createElement("option", { value: "" }, "Standard-Mikrofon"),
+      micDevices.map((d) => /* @__PURE__ */ React.createElement("option", { key: d.deviceId, value: d.deviceId }, d.label || "Mikrofon"))
+    ))), /* @__PURE__ */ React.createElement(
       "button",
       {
         onClick: handlePrint,
@@ -617,7 +649,7 @@
           className: "no-print w-7 h-7 rounded-full border border-[#c9a15a] text-[#c9a15a] hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
-      )), /* @__PURE__ */ React.createElement("div", { className: "mt-1.5" }, /* @__PURE__ */ React.createElement(MicMeasureButton, { targetHz: fundamentalHz, accent: "#c9a15a" }))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c1666b] text-xs uppercase tracking-wide mb-1" }, "Schlagfell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, top.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("div", { className: "mt-1.5" }, /* @__PURE__ */ React.createElement(MicMeasureButton, { targetHz: fundamentalHz, accent: "#c9a15a", deviceId: micDeviceId }))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c1666b] text-xs uppercase tracking-wide mb-1" }, "Schlagfell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, top.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => handlePlay(top),
@@ -625,7 +657,7 @@
           className: "no-print w-7 h-7 rounded-full border border-[#c1666b] text-[#c1666b] hover:bg-[#c1666b] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
-      )), /* @__PURE__ */ React.createElement("div", { className: "mt-1.5" }, /* @__PURE__ */ React.createElement(MicMeasureButton, { targetHz: top, accent: "#c1666b" }))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#7fa593] text-xs uppercase tracking-wide mb-1" }, "Resofell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, bottom.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("div", { className: "mt-1.5" }, /* @__PURE__ */ React.createElement(MicMeasureButton, { targetHz: top, accent: "#c1666b", deviceId: micDeviceId }))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#7fa593] text-xs uppercase tracking-wide mb-1" }, "Resofell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, bottom.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => handlePlay(bottom),
@@ -633,7 +665,7 @@
           className: "no-print w-7 h-7 rounded-full border border-[#7fa593] text-[#7fa593] hover:bg-[#7fa593] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
-      )), /* @__PURE__ */ React.createElement("div", { className: "mt-1.5" }, /* @__PURE__ */ React.createElement(MicMeasureButton, { targetHz: bottom, accent: "#7fa593" }))), /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("div", { className: "mt-1.5" }, /* @__PURE__ */ React.createElement(MicMeasureButton, { targetHz: bottom, accent: "#7fa593", deviceId: micDeviceId }))), /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => handlePlayBoth(top, bottom),
