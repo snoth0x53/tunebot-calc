@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mikrofon-Test</title>
+<style>
+  :root {
+    --bg: #1a140d; --card: #211910; --card2: #170f09; --border: #3a2c1a;
+    --gold: #c9a15a; --cream: #e8dcc4; --muted: #a8977b; --red: #c1666b; --green: #7fa593;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--cream);
+    font-family: Georgia, 'Iowan Old Style', serif;
+  }
+  header { border-bottom: 1px solid var(--border); padding: 28px 24px; }
+  .eyebrow { color: var(--gold); font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; margin: 0 0 8px; }
+  h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 28px; margin: 0; }
+  p.sub { color: var(--muted); font-size: 14px; max-width: 640px; line-height: 1.5; margin: 10px 0 0; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px; }
+  .card { border: 1px solid var(--border); background: var(--card); border-radius: 3px; padding: 20px; margin-bottom: 20px; }
+  label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 6px; }
+  select, button {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace; background: var(--card2);
+    border: 1px solid var(--border); color: var(--cream); border-radius: 3px; padding: 8px 10px; font-size: 14px;
+  }
+  select { width: 100%; }
+  button { cursor: pointer; border-color: var(--gold); color: var(--gold); text-transform: uppercase; letter-spacing: 0.05em; font-size: 12px; padding: 10px 18px; }
+  button:hover { background: var(--gold); color: var(--bg); }
+  button:disabled { opacity: 0.4; cursor: default; background: none; color: var(--gold); }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+  .row > div { flex: 1; min-width: 220px; }
+  canvas { width: 100%; display: block; background: var(--card2); border: 1px solid var(--border); border-radius: 3px; }
+  .meterWrap { height: 14px; background: var(--card2); border: 1px solid var(--border); border-radius: 7px; overflow: hidden; margin-top: 8px; }
+  .meterBar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--green), var(--gold), var(--red)); transition: width 0.05s linear; }
+  .pitchDisplay { font-family: ui-monospace, monospace; font-size: 42px; text-align: center; padding: 20px 0 6px; }
+  .pitchLabel { text-align: center; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+  table { width: 100%; border-collapse: collapse; font-family: ui-monospace, monospace; font-size: 13px; margin-top: 10px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: normal; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; }
+  .statusDot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 6px; }
+  .statusDot.live { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .hint { font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Diagnose-Werkzeug</p>
+  <h1>Mikrofon-Test</h1>
+  <p class="sub">Testet ein Mikrofon-Setup live, bevor es im Tune-Bot-Rechner zum Einsatz kommt:
+  Pegel, Frequenzspektrum und laufende Tonhöhenerkennung per Autokorrelation. So lässt sich vergleichen,
+  wie sauber verschiedene Mikrofone (eingebaut, USB-Lavalier, DIY-Nahfeld-Halterung) einen Trommelanschlag erfassen.</p>
+</header>
+
+<main>
+  <div class="card">
+    <div class="row">
+      <div>
+        <label for="deviceSelect">Eingabegerät</label>
+        <select id="deviceSelect"><option>Erst auf "Starten" klicken…</option></select>
+      </div>
+      <div style="flex: 0 0 auto;">
+        <button id="startBtn">Starten</button>
+        <button id="stopBtn" disabled>Stoppen</button>
+      </div>
+    </div>
+    <p class="hint"><span class="statusDot" id="statusDot"></span><span id="statusText">Nicht verbunden</span></p>
+  </div>
+
+  <div class="card">
+    <div class="pitchLabel">Live erkannte Frequenz</div>
+    <div class="pitchDisplay" id="pitchDisplay">— Hz</div>
+    <div class="meterWrap"><div class="meterBar" id="meterBar"></div></div>
+    <p class="hint">Pegel (RMS). Je lauter/klarer der Anschlag, desto zuverlässiger die Erkennung.</p>
+  </div>
+
+  <div class="card">
+    <label>Wellenform (Zeitbereich)</label>
+    <canvas id="waveCanvas" height="120"></canvas>
+  </div>
+
+  <div class="card">
+    <label>Frequenzspektrum</label>
+    <canvas id="freqCanvas" height="140"></canvas>
+  </div>
+
+  <div class="card">
+    <label>Erkannte Anschläge (letzte 10)</label>
+    <table>
+      <thead><tr><th>#</th><th>Zeit</th><th>Frequenz</th><th>Pegel</th></tr></thead>
+      <tbody id="hitLog"><tr><td colspan="4" style="color: var(--muted);">Noch keine Anschläge erkannt.</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+(function () {
+  const deviceSelect = document.getElementById('deviceSelect');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  const pitchDisplay = document.getElementById('pitchDisplay');
+  const meterBar = document.getElementById('meterBar');
+  const waveCanvas = document.getElementById('waveCanvas');
+  const freqCanvas = document.getElementById('freqCanvas');
+  const hitLog = document.getElementById('hitLog');
+  const waveCtx = waveCanvas.getContext('2d');
+  const freqCtx = freqCanvas.getContext('2d');
+
+  let audioCtx = null, analyser = null, source = null, stream = null;
+  let rafId = null;
+  let onsetActive = false;
+  let hits = [];
+  let sizeSet = false;
+
+  function fitCanvas(canvas) {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * devicePixelRatio;
+    canvas.height = rect.height * devicePixelRatio;
+  }
+
+  // Standard-Autokorrelation (ACF2+) zur Grundtonerkennung.
+  function autoCorrelate(buf, sampleRate) {
+    let SIZE = buf.length, rms = 0;
+    for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
+    rms = Math.sqrt(rms / SIZE);
+    if (rms < 0.01) return { freq: -1, rms };
+
+    let r1 = 0, r2 = SIZE - 1;
+    const thres = 0.2;
+    for (let i = 0; i < SIZE / 2; i++) { if (Math.abs(buf[i]) < thres) { r1 = i; break; } }
+    for (let i = 1; i < SIZE / 2; i++) { if (Math.abs(buf[SIZE - i]) < thres) { r2 = SIZE - i; break; } }
+    const trimmed = buf.slice(r1, r2);
+    const n = trimmed.length;
+    if (n < 8) return { freq: -1, rms };
+
+    const c = new Array(n).fill(0);
+    for (let i = 0; i < n; i++) for (let j = 0; j < n - i; j++) c[i] += trimmed[j] * trimmed[j + i];
+
+    let d = 0;
+    while (d + 1 < n && c[d] > c[d + 1]) d++;
+    let maxVal = -1, maxPos = -1;
+    for (let i = d; i < n; i++) { if (c[i] > maxVal) { maxVal = c[i]; maxPos = i; } }
+    if (maxPos <= 0 || maxPos >= n - 1) return { freq: -1, rms };
+
+    const x1 = c[maxPos - 1], x2 = c[maxPos], x3 = c[maxPos + 1];
+    const a = (x1 + x3 - 2 * x2) / 2, b = (x3 - x1) / 2;
+    const shift = a ? -b / (2 * a) : 0;
+    const T0 = maxPos + shift;
+    if (T0 <= 0) return { freq: -1, rms };
+    return { freq: sampleRate / T0, rms };
+  }
+
+  async function populateDevices() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const mics = devices.filter(d => d.kind === 'audioinput');
+    deviceSelect.innerHTML = '';
+    mics.forEach((d, i) => {
+      const opt = document.createElement('option');
+      opt.value = d.deviceId;
+      opt.textContent = d.label || `Mikrofon ${i + 1}`;
+      deviceSelect.appendChild(opt);
+    });
+  }
+
+  async function start() {
+    try {
+      const deviceId = deviceSelect.value || undefined;
+      const constraints = {
+        audio: {
+          echoCancellation: false, noiseSuppression: false, autoGainControl: false,
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+        },
+      };
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      await populateDevices(); // jetzt mit echten Labels, da Berechtigung erteilt wurde
+
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new Ctx();
+      source = audioCtx.createMediaStreamSource(stream);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.3;
+      source.connect(analyser);
+
+      fitCanvas(waveCanvas);
+      fitCanvas(freqCanvas);
+
+      statusDot.classList.add('live');
+      statusText.textContent = 'Live — hört zu';
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      deviceSelect.disabled = true;
+      hits = [];
+      renderHitLog();
+      loop();
+    } catch (err) {
+      statusText.textContent = 'Fehler: ' + err.message;
+    }
+  }
+
+  function stop() {
+    if (rafId) cancelAnimationFrame(rafId);
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    if (audioCtx) audioCtx.close();
+    audioCtx = null; analyser = null; source = null; stream = null;
+    statusDot.classList.remove('live');
+    statusText.textContent = 'Gestoppt';
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    deviceSelect.disabled = false;
+    pitchDisplay.textContent = '— Hz';
+    meterBar.style.width = '0%';
+    onsetActive = false;
+  }
+
+  function renderHitLog() {
+    if (hits.length === 0) {
+      hitLog.innerHTML = '<tr><td colspan="4" style="color: var(--muted);">Noch keine Anschläge erkannt.</td></tr>';
+      return;
+    }
+    hitLog.innerHTML = hits.slice(-10).reverse().map((h, i) => `
+      <tr>
+        <td>${hits.length - i}</td>
+        <td>${h.time}</td>
+        <td>${h.freq.toFixed(1)} Hz</td>
+        <td>${(h.rms * 100).toFixed(0)}%</td>
+      </tr>
+    `).join('');
+  }
+
+  function drawWave(buf) {
+    const w = waveCanvas.width, h = waveCanvas.height;
+    waveCtx.clearRect(0, 0, w, h);
+    waveCtx.strokeStyle = '#c9a15a';
+    waveCtx.lineWidth = 1.5 * devicePixelRatio;
+    waveCtx.beginPath();
+    for (let i = 0; i < buf.length; i++) {
+      const x = (i / buf.length) * w;
+      const y = h / 2 + buf[i] * h / 2;
+      if (i === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
+    }
+    waveCtx.stroke();
+  }
+
+  function drawFreq(freqData) {
+    const w = freqCanvas.width, h = freqCanvas.height;
+    freqCtx.clearRect(0, 0, w, h);
+    const bars = 96;
+    const step = Math.floor(freqData.length / 4 / bars); // Fokus auf unteres Frequenzviertel (relevant für Trommeln)
+    const barW = w / bars;
+    for (let i = 0; i < bars; i++) {
+      const v = freqData[i * step] / 255;
+      const barH = v * h;
+      freqCtx.fillStyle = `rgba(201,161,90,${0.35 + v * 0.65})`;
+      freqCtx.fillRect(i * barW, h - barH, barW - 1, barH);
+    }
+  }
+
+  function loop() {
+    if (!analyser) return;
+    const buf = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(buf);
+    const freqData = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(freqData);
+
+    drawWave(buf);
+    drawFreq(freqData);
+
+    const { freq, rms } = autoCorrelate(buf, audioCtx.sampleRate);
+    const level = Math.min(1, rms * 6);
+    meterBar.style.width = (level * 100).toFixed(0) + '%';
+
+    if (freq > 0) {
+      pitchDisplay.textContent = freq.toFixed(1) + ' Hz';
+    }
+
+    // Einfache Onset-Erkennung fürs Log: Pegel überschreitet Schwelle nach Ruhe
+    if (!onsetActive && rms > 0.05) {
+      onsetActive = true;
+      if (freq > 20 && freq < 1000) {
+        hits.push({ time: new Date().toLocaleTimeString('de-DE'), freq, rms });
+        renderHitLog();
+      }
+    } else if (onsetActive && rms < 0.02) {
+      onsetActive = false;
+    }
+
+    rafId = requestAnimationFrame(loop);
+  }
+
+  startBtn.addEventListener('click', start);
+  stopBtn.addEventListener('click', stop);
+
+  navigator.mediaDevices.enumerateDevices().then(devices => {
+    const mics = devices.filter(d => d.kind === 'audioinput');
+    if (mics.length && mics[0].label) populateDevices();
+  }).catch(() => {});
+})();
+</script>
+
+</body>
+</html>
