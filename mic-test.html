@@ -292,7 +292,7 @@
     }
 
     // Einfache Onset-Erkennung fürs Log: Pegel überschreitet Schwelle nach Ruhe
-    if (!onsetActive && rms > 0.05) {
+    if (!onsetActive && rms > 0.015) {
       onsetActive = true;
       if (freq > 20 && freq < 1000) {
         setTimeout(() => {
