@@ -352,6 +352,7 @@
     const stopFnRef = useRef(null);
     const rafRef = useRef(null);
     const recentRef = useRef([]);
+    const inStrikeRef = useRef(false);
     const stopListening = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (stopFnRef.current) stopFnRef.current();
@@ -366,6 +367,7 @@
       setMeasured(null);
       setErrorMsg("");
       recentRef.current = [];
+      inStrikeRef.current = false;
       let stream;
       try {
         stream = await getMicStream(deviceId);
@@ -404,7 +406,12 @@
           let rms = 0;
           for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
           rms = Math.sqrt(rms / buf.length);
-          if (rms > 0.015) {
+          const STRIKE_RMS = 0.04;
+          if (rms > STRIKE_RMS) {
+            if (!inStrikeRef.current) {
+              inStrikeRef.current = true;
+              recentRef.current = [];
+            }
             const { freq, confidence } = detectPitchYIN(buf, sampleRate);
             if (freq > minHz && freq < maxHz && confidence > 0.3) {
               recentRef.current.push(freq);
@@ -414,6 +421,8 @@
               setMeasured(median);
               gotAny = true;
             }
+          } else {
+            inStrikeRef.current = false;
           }
           if (performance.now() - startTime > 3e4) {
             stopListening();
