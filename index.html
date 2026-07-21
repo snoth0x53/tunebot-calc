@@ -406,10 +406,18 @@
           rms = Math.sqrt(rms / buf.length);
           if (rms > 0.04) {
             const { freq, confidence } = detectPitchYIN(buf, sampleRate);
-            if (freq > minHz && freq < maxHz && confidence > 0.3) {
-              recentRef.current.push(freq);
-              if (recentRef.current.length > 5) recentRef.current.shift();
-              const sorted = [...recentRef.current].sort((a, b) => a - b);
+            if (freq > minHz && freq < maxHz && confidence > 0.6) {
+              let f = freq;
+              const arr = recentRef.current;
+              if (arr.length >= 2) {
+                const sortedPrev = [...arr].sort((a, b) => a - b);
+                const ref = sortedPrev[Math.floor(sortedPrev.length / 2)];
+                if (Math.abs(f - ref * 2) < ref * 0.15) f = f / 2;
+                else if (Math.abs(f - ref / 2) < ref * 0.075) f = f * 2;
+              }
+              arr.push(f);
+              if (arr.length > 7) arr.shift();
+              const sorted = [...arr].sort((a, b) => a - b);
               const median = sorted[Math.floor(sorted.length / 2)];
               setMeasured(median);
               gotAny = true;
