@@ -325,6 +325,10 @@
       const denom = 2 * (2 * s1 - s2 - s0);
       if (denom !== 0) betterTau = tauEstimate + (s2 - s0) / denom;
     }
+    const doubledTau = Math.round(betterTau * 2);
+    if (doubledTau > 0 && doubledTau < halfSize && cmnd[doubledTau] < threshold && cmnd[doubledTau] <= cmnd[tauEstimate] * 1.15) {
+      betterTau = doubledTau;
+    }
     const freq = sampleRate / betterTau;
     const confidence = 1 - cmnd[tauEstimate];
     return { freq, confidence };
@@ -481,7 +485,6 @@
     "Tom": 0.75,
     "Floor Tom": 0.85,
     "Snare": 0.46
-    // entspricht klassischer 14x6.5"
   };
   const MAX_DEPTH_SHIFT = 0.15;
   function depthShift(type, diameter, depth) {
