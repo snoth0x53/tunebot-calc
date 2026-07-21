@@ -285,7 +285,7 @@
     noise.start(now);
     noise.stop(now + 0.09);
   }
-  function detectPitchYIN(buf, sampleRate, threshold = 0.15) {
+  function detectPitchYIN(buf, sampleRate, threshold = 0.15, minHz, maxHz) {
     const SIZE = buf.length;
     const halfSize = Math.floor(SIZE / 2);
     let rms = 0;
@@ -325,12 +325,12 @@
       const denom = 2 * (2 * s1 - s2 - s0);
       if (denom !== 0) betterTau = tauEstimate + (s2 - s0) / denom;
     }
-    const doubledTau = Math.round(betterTau * 2);
-    if (doubledTau > 0 && doubledTau < halfSize && cmnd[doubledTau] < threshold && cmnd[doubledTau] <= cmnd[tauEstimate] * 1.15) {
-      betterTau = doubledTau;
-    }
-    const freq = sampleRate / betterTau;
+    let freq = sampleRate / betterTau;
     const confidence = 1 - cmnd[tauEstimate];
+    if (minHz != null && maxHz != null) {
+      if (freq < minHz && freq * 2 <= maxHz) freq *= 2;
+      else if (freq > maxHz && freq / 2 >= minHz) freq /= 2;
+    }
     return { freq, confidence };
   }
   const MIC_RANGE = {
@@ -416,7 +416,7 @@
               inStrikeRef.current = true;
               recentRef.current = [];
             }
-            const { freq, confidence } = detectPitchYIN(buf, sampleRate);
+            const { freq, confidence } = detectPitchYIN(buf, sampleRate, 0.15, minHz, maxHz);
             if (freq > minHz && freq < maxHz && confidence > 0.3) {
               recentRef.current.push(freq);
               if (recentRef.current.length > 5) recentRef.current.shift();
