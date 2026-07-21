@@ -400,6 +400,7 @@
         const startTime = performance.now();
         let gotAny = false;
         let onsetActive = false;
+        let onsetTime = 0;
         const loop = () => {
           analyser.getFloatTimeDomainData(buf);
           let rms = 0;
@@ -407,6 +408,7 @@
           rms = Math.sqrt(rms / buf.length);
           if (!onsetActive && rms > 0.02) {
             onsetActive = true;
+            onsetTime = performance.now();
             setTimeout(() => {
               analyser.getFloatTimeDomainData(buf);
               const { freq, confidence } = detectPitchYIN(buf, sampleRate);
@@ -419,7 +421,7 @@
                 gotAny = true;
               }
             }, 70);
-          } else if (onsetActive && rms < 0.01) {
+          } else if (onsetActive && (rms < 0.01 || performance.now() - onsetTime > 500)) {
             onsetActive = false;
           }
           if (performance.now() - startTime > 3e4) {
