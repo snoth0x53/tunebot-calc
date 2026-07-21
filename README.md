@@ -21,8 +21,10 @@ im Browser.
   Quinte/Quarte/Terz/Unisono), getrennt von der Resonance-Modus-Logik für Toms/Bassdrum
 - **Profi-Durchschnitt:** zusätzlicher Modus je Trommelart, basierend auf einer eigenen
   Auswertung von über 90 realen Artist-Tunings (siehe Abschnitt weiter unten)
-- **Mikrofon-Messung:** direkt im Tool über "🎤 messen" die tatsächliche Frequenz per
-  Autokorrelation messen und mit dem Zielwert vergleichen (eingebautes oder externes Mikro)
+- **Mikrofon-Messung:** ein "🎤 Messen"-Button pro Trommel misst den tatsächlichen
+  Ist-Wert per YIN-Algorithmus (läuft bis manuell gestoppt, mehrfach anschlagen
+  möglich) – Vergleich mit den drei Zielwerten erfolgt visuell (eingebautes oder
+  externes Mikro, Geräteauswahl im Header)
 - Ton-Vorschau: kurze synthetische Klangbeispiele für Schlagfell, Resonanzfell
   und den resultierenden Trommel-Grundton
 - **Set-Name:** ganzes Kit benennen (z. B. "Rogers XP8"), um mehrere Drumsets
@@ -30,20 +32,29 @@ im Browser.
 - **Drucken / Als PDF speichern:** aktuelle Einstellungen aller Trommeln als
   sauberes Dokument sichern oder ausdrucken (über den normalen Browser-Druckdialog)
 
-## So ermittelst du den Grundton (Fundamentalfrequenz)
+## Grundton messen und kalibrieren
 
-Der Grundton ist die Tonhöhe der ganzen Trommel beim mittigen Anschlag – nicht die
-Frequenz an einem einzelnen Lug.
+Der Grundton (Fundamentalfrequenz) ist die Tonhöhe der ganzen Trommel beim mittigen
+Anschlag – nicht die Frequenz an einem einzelnen Lug. Ihn brauchst du für die
+Kalibrierfunktion.
 
-1. Trommel auf einen Ständer stellen (nicht auf den Schoß/eine weiche Unterlage legen)
-2. Beide Felle grob gleichmäßig stimmen (unisono, ein beliebiger Ausgangswert reicht)
-3. Mit dem Tunebot-Clip an einem Lug ansetzen, mittig auf das Fell schlagen
-4. Angezeigten Wert ablesen – das ist deine reale Fundamentalfrequenz
+**Schritt 1 – Beide Felle unisono stimmen.**
+Schlag- und Resonanzfell auf die gleiche Lug-Frequenz bringen. Die beiden Felle
+stimmt man dabei getrennt: die jeweils andere Seite auf eine weiche Unterlage legen
+(dämpft sie ab, damit nur das freie Fell schwingt), das freie Fell rundum gleichmäßig
+stimmen, dann die Trommel umdrehen und das zweite Fell genauso stimmen.
 
-Diesen Wert kannst du zusammen mit der aktuell eingestellten Lug-Frequenz in die
-**Kalibrierfunktion** des Rechners eintragen (siehe "+ Kalibrieren" bei jeder Trommel).
-Daraus wird dein individueller Koeffizient berechnet, der die generische Formel für
-genau diese Trommel/dieses Fell ersetzt – genauer als die Standardwerte.
+**Schritt 2 – Grundton messen.**
+Trommel auf einen Ständer stellen (nicht auf eine weiche Unterlage). Mittig aufs Fell
+schlagen und den Gesamtklang messen – entweder mit dem Tunebot-Clip oder mit der
+Mikrofon-Messung dieses Tools ("🎤 Messen"). Der abgelesene Wert ist deine reale
+Fundamentalfrequenz.
+
+**Schritt 3 – Kalibrieren.**
+Diese gemessene Fundamentalfrequenz zusammen mit der eingestellten Lug-Frequenz in die
+**Kalibrierfunktion** eintragen (siehe "+ Kalibrieren" bei jeder Trommel). Daraus wird
+dein individueller Koeffizient berechnet, der die generische Formel für genau diese
+Trommel und dieses Fell ersetzt – genauer als die Standardwerte.
 
 ## Formel-Grundlage
 
@@ -91,7 +102,7 @@ wurden vor der Mittelwertbildung markiert bzw. entfernt.
 
 `mic-test.html` ist ein eigenständiges Diagnose-Werkzeug, um ein Mikrofon-Setup zu
 prüfen, bevor es im Rechner zum Einsatz kommt: Live-Wellenform, Frequenzspektrum,
-Pegel-Meter und laufende Tonhöhenerkennung per Autokorrelation, plus ein Log der
+Pegel-Meter und laufende Tonhöhenerkennung per YIN-Algorithmus, plus ein Log der
 letzten 10 erkannten Anschläge zum Vergleich der Konsistenz zwischen Mikrofonen.
 
 🔗 **Live:** https://snoth0x53.github.io/tunebot-calc/mic-test.html
@@ -101,6 +112,24 @@ HTTPS (oder `localhost`) – nicht in eingebetteten Vorschau-Fenstern. Für loka
 Tests ohne Upload: `python3 -m http.server 8000` im Ordner mit der Datei, dann
 `http://localhost:8000/mic-test.html` öffnen. Fürs iPhone im selben lokalen Test
 zusätzlich ein HTTPS-Tunnel nötig (z. B. `cloudflared tunnel --url http://localhost:8000`).
+
+## Genauigkeit der Mikrofon-Messung
+
+Die Tonhöhenerkennung nutzt den **YIN-Algorithmus** (de Cheveigné & Kawahara, 2002) –
+den Industriestandard für Pitch-Detection, robuster gegen Oktavfehler als einfache
+Autokorrelation, mit eingebauter Zuverlässigkeitsschätzung (Confidence). Zusätzliche
+Maßnahmen gegen Fehlmessungen:
+
+- **Plausible Frequenzbereiche je Trommelart:** Bassdrum 30–160 Hz, Toms 50–350 Hz,
+  Snare 50–450 Hz – filtert unrealistische Werte automatisch heraus
+- **Median-Glättung** über die letzten 5 gültigen Messungen, um einzelne Ausreißer
+  abzufedern
+- Werte werden nur übernommen, wenn die YIN-Confidence einen Mindestwert überschreitet
+
+Trotzdem bleibt die Mikrofon-Hardware der limitierende Faktor: Frequenzgang,
+Abstand zum Fell und Raumgeräusche wirken sich stärker aus als jede Software-
+Optimierung. Ein externes Mikrofon näher am Fell liefert zuverlässigere Werte als
+das eingebaute Laptop-/Handy-Mikrofon aus größerer Distanz.
 
 ## Technik
 
@@ -114,7 +143,7 @@ als statische Seite über GitHub Pages hostbar.
 
 `index.html` lässt sich direkt im Browser öffnen (auch per Doppelklick) – für alle
 Funktionen außer der Mikrofon-Messung reicht das (Internetverbindung für die
-CDN-Skripte wird benötigt). Für die "🎤 messen"-Buttons braucht es wie beim
+CDN-Skripte wird benötigt). Für den "🎤 Messen"-Button braucht es wie beim
 Mikrofon-Test-Tool einen sicheren Kontext (HTTPS oder `localhost`), siehe oben.
 
 ## Haftungsausschluss
