@@ -285,7 +285,7 @@
     noise.start(now);
     noise.stop(now + 0.09);
   }
-  function detectPitchYIN(buf, sampleRate, threshold = 0.15, minHz, maxHz) {
+  function detectPitchYIN(buf, sampleRate, threshold = 0.15) {
     const SIZE = buf.length;
     const halfSize = Math.floor(SIZE / 2);
     let rms = 0;
@@ -325,12 +325,8 @@
       const denom = 2 * (2 * s1 - s2 - s0);
       if (denom !== 0) betterTau = tauEstimate + (s2 - s0) / denom;
     }
-    let freq = sampleRate / betterTau;
+    const freq = sampleRate / betterTau;
     const confidence = 1 - cmnd[tauEstimate];
-    if (minHz != null && maxHz != null) {
-      if (freq < minHz && freq * 2 <= maxHz) freq *= 2;
-      else if (freq > maxHz && freq / 2 >= minHz) freq /= 2;
-    }
     return { freq, confidence };
   }
   const MIC_RANGE = {
@@ -356,7 +352,6 @@
     const stopFnRef = useRef(null);
     const rafRef = useRef(null);
     const recentRef = useRef([]);
-    const inStrikeRef = useRef(false);
     const stopListening = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (stopFnRef.current) stopFnRef.current();
@@ -371,7 +366,6 @@
       setMeasured(null);
       setErrorMsg("");
       recentRef.current = [];
-      inStrikeRef.current = false;
       let stream;
       try {
         stream = await getMicStream(deviceId);
@@ -396,6 +390,7 @@
         const source = ctx.createMediaStreamSource(stream);
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 4096;
+        analyser.smoothingTimeConstant = 0.3;
         source.connect(analyser);
         const buf = new Float32Array(analyser.fftSize);
         const sampleRate = ctx.sampleRate;
@@ -410,13 +405,8 @@
           let rms = 0;
           for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
           rms = Math.sqrt(rms / buf.length);
-          const STRIKE_RMS = 0.04;
-          if (rms > STRIKE_RMS) {
-            if (!inStrikeRef.current) {
-              inStrikeRef.current = true;
-              recentRef.current = [];
-            }
-            const { freq, confidence } = detectPitchYIN(buf, sampleRate, 0.15, minHz, maxHz);
+          if (rms > 0.015) {
+            const { freq, confidence } = detectPitchYIN(buf, sampleRate);
             if (freq > minHz && freq < maxHz && confidence > 0.3) {
               recentRef.current.push(freq);
               if (recentRef.current.length > 5) recentRef.current.shift();
@@ -425,8 +415,6 @@
               setMeasured(median);
               gotAny = true;
             }
-          } else {
-            inStrikeRef.current = false;
           }
           if (performance.now() - startTime > 3e4) {
             stopListening();
