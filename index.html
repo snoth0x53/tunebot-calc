@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tune-Bot Lug-Rechner</title>
+<title>Fellton</title>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -18,6 +18,182 @@
 <script>
 (() => {
   const { useState, useMemo, useRef } = React;
+  const T = {
+    de: {
+      eyebrow: "Overtone Labs Formel",
+      subtitle: "Grundton w\xE4hlen, Resonance-Modus einstellen \u2014 die Ziel-Frequenz f\xFCr jeden Lug wird nach der offiziellen Tune-Bot-Formel berechnet.",
+      setLabel: "Set:",
+      setPlaceholder: "z.B. Rogers XP8, Zweitset...",
+      printedOn: "Ausgedruckt am",
+      micLabel: "\u{1F3A4} Mikrofon:",
+      loadDevices: "Ger\xE4te laden",
+      defaultMic: "Standard-Mikrofon",
+      micFallback: "Mikrofon",
+      printButton: "\u{1F5A8} Drucken / Als PDF speichern",
+      remove: "Entfernen",
+      typeLabel: "Typ",
+      diameterLabel: 'Durchmesser (")',
+      depthLabel: 'Tiefe (")',
+      lugsLabel: "Lugs",
+      noteLabel: "Grundton",
+      octaveLabel: "Oktave",
+      depthRatioInfo: "Tiefe/Durchmesser",
+      referenceLabel: "Referenz",
+      calibratedActive: "Kalibrierter Koeffizient aktiv: a =",
+      calibratedActiveSuffix: "(ersetzt Tiefen-N\xE4herung)",
+      multiplierShift: "Multiplikator-Shift:",
+      shiftShallower: "(flacher \u2192 mehr Spannung n\xF6tig)",
+      shiftDeeper: "(tiefer \u2192 weniger Spannung n\xF6tig)",
+      shiftMatches: "(entspricht Referenz)",
+      calibrateToggle: "Kalibrieren",
+      activeSuffix: "(aktiv)",
+      calibrateInstructions: "Stimme beide Felle unisono auf einen beliebigen Lug-Wert, schlage die Trommel mittig an (auf St\xE4nder) und miss die reale Fundamentalfrequenz mit dem Tunebot. Trag beide Werte ein \u2014 daraus wird dein echter Koeffizient berechnet und ersetzt die Sch\xE4tzung oben.",
+      calibLugLabel: "Lug-Frequenz (unisono)",
+      calibFundLabel: "Gemessene Fundamentalfreq.",
+      apply: "\xDCbernehmen",
+      reset: "Zur\xFCcksetzen",
+      intervalLabel: "Intervall (Resofell zu Schlagfell)",
+      resonanceModeLabel: "Resonance-Modus",
+      higherHeadLabel: "H\xF6heres Fell",
+      resoLower: "Resonanzfell (unten)",
+      battTop: "Schlagfell (oben)",
+      snareDescDefault: "Laut PDF-Snare-Abschnitt: Resofell h\xF6her als Schlagfell, Standard Quinte (x1,5) \u2014 best\xE4tigt gegen echte Tune-Bot-Ger\xE4tewerte.",
+      snareDescPro: "Empirischer Durchschnitt aus 22 realen Profi-Snare-Tunings (tune-bot.com/artists).",
+      modeDescPro: "Empirischer Durchschnitt aus realen Artist-Tunings (tune-bot.com/artists).",
+      overLimitWarning: "\u26A0 Resofell \xFCber 400 Hz \u2014 laut PDF \xDCberdehnungsgefahr, evtl. kleineres Intervall w\xE4hlen.",
+      fundamentalLabel: "Grundton (Trommelklang)",
+      battLabel: "Schlagfell (Lug)",
+      resoLabel: "Resofell (Lug)",
+      playDrumTitle: "Trommelklang abspielen",
+      playToneTitle: "Ton abspielen",
+      measureLabel: "Ist-Wert messen (mit Mikrofon abgleichen)",
+      addDrumButton: "+ Trommel hinzuf\xFCgen",
+      lugRingCaption: "Zahlen = Kreuz-Stimmreihenfolge",
+      micStop: "Stoppen",
+      micMeasure: "Messen",
+      micMeasureTitle: "\xDCber Mikrofon messen (l\xE4uft bis du stoppst, mehrmals anschlagen m\xF6glich)",
+      micNoTone: "kein Ton erkannt",
+      micTryLouder: "lauter/n\xE4her versuchen",
+      footer1: "Formel nach Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3.",
+      footer2Title: "Zum Tiefen-Einfluss:",
+      footer2: "Es gibt daf\xFCr keine offizielle Tune-Bot-Formel \u2014 laut zugeh\xF6rigem Patent wird der reale Multiplikator pro Trommel kalibriert/gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Industriestandard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert.",
+      footer3Title: "Kalibrieren:",
+      footer3: "Tr\xE4gst du bei einer Trommel eine gemessene Lug- und Fundamentalfrequenz ein, wird daraus dein realer Koeffizient (a = Lug \xF7 Fundamental) berechnet. Dieser ersetzt dann die Tiefen-N\xE4herung f\xFCr genau diese Trommel \u2014 deutlich pr\xE4ziser, weil Kesselmaterial, Felltyp und Bauart darin bereits stecken.",
+      footer4Title: "Zum Ton-Preview:",
+      footer4a: "Die \u25B6-Buttons bei Schlag-/Resofell spielen einen reinen Sinuston bei der jeweiligen Lug-Zielfrequenz. Der \u25B6-Button beim Grundton simuliert stattdessen n\xE4herungsweise den",
+      footer4b: "gekoppelten",
+      footer4c: "Klang der ganzen Trommel (Fundamentalton plus leise Fell-Partialt\xF6ne und Attack-Transient) \u2014 beides sind H\xF6reinsch\xE4tzungen zur Orientierung, kein realistischer Fell- oder Kesselklang.",
+      footer5Title: "Kreuz-Stimmreihenfolge:",
+      footer5: "Die Zahlen im Lug-Kreis zeigen nicht die physische Position, sondern die empfohlene Reihenfolge beim Stimmen (immer zum gegen\xFCberliegenden bzw. \xFCbern\xE4chsten Lug springen, nie im Kreis herum). Formel: Position(Schritt) = \u230ASchritt/2\u230B + (Schritt mod 2) \xD7 \u230AN/2\u230B \u2014 funktioniert f\xFCr jede gerade Lug-Anzahl.",
+      footer6Title: "Mikrofon-Messung:",
+      footer6: 'Der "\u{1F3A4} Messen"-Button pro Trommel h\xF6rt \xFCber das Mikrofon zu und berechnet die Grundfrequenz laufend mit dem YIN-Algorithmus (Industriestandard). Funktioniert mit dem eingebauten Mikrofon von Handy/Laptop; f\xFCr genauere Ergebnisse (v.a. bei tiefen Bassdrum-Frequenzen) reicht ein einfaches externes Klemmmikrofon (ca. 15\u201330\xA0\u20AC). Der Browser fragt einmalig um Mikrofon-Erlaubnis. Snare am besten mit ausgeh\xE4ngtem Teppich messen, um Rasseln aus dem Signal fernzuhalten.',
+      footer7Title: "Profi-Durchschnitt:",
+      footer7: "Diese Option basiert auf einer eigenen Auswertung von \xFCber 90 realen Trommel-Tunings professioneller Drummer, ver\xF6ffentlicht auf tune-bot.com/artists (Stand: eigene Analyse). Snare-Werte (n=22): Schlagfell \xD71,47, Intervall \xD71,29. Tom-Werte (n=60): Schlagfell \xD71,60, Resofell \xD71,92. Bassdrum-Werte (n=14): Schlagfell \xD71,62, Resofell \xD71,82. Offensichtliche Scraping-Duplikate wurden vor der Mittelwertbildung entfernt.",
+      footer8Title: "Genauigkeit der Mikrofon-Messung:",
+      footer8: "Ergebnisse werden auf einen plausiblen Frequenzbereich je Trommelart begrenzt (Bassdrum 30\u2013160 Hz, Toms 50\u2013350 Hz, Snare 50\u2013450 Hz) und nur bei ausreichender Zuverl\xE4ssigkeit (YIN-Confidence) \xFCbernommen, um typische Oktavfehler herauszufiltern. Zus\xE4tzlich wird \xFCber die letzten 5 g\xFCltigen Messungen der Median gebildet, um einzelne Ausrei\xDFer zu gl\xE4tten. Trotzdem bleibt die eingebaute Mikrofon-Hardware (Frequenzgang, Abstand, Raumger\xE4usche) der limitierende Faktor \u2014 ein externes Mikrofon n\xE4her am Fell liefert meist zuverl\xE4ssigere Werte als das eingebaute Laptop-/Handy-Mikrofon aus der Distanz.",
+      modes: {
+        maximum: { label: "Maximum (Unisono)", desc: "Beide Felle gleich \u2014 volles Sustain, offener Ton" },
+        high: { label: "High", desc: "Leichtes Intervall \u2014 mehr Kontrolle, f\xFCr Live gut geeignet" },
+        medium: { label: "Medium", desc: "Deutlicheres Intervall \u2014 klarer Attack" },
+        low: { label: "Low", desc: "Gr\xF6\xDFtes Intervall \u2014 k\xFCrzestes Sustain, viel Attack" },
+        pro: { label: "Profi-Durchschnitt (empirisch)", desc: "Aus 60+ realen Artist-Tunings (tune-bot.com/artists) berechneter Durchschnitt" }
+      },
+      snareIntervals: {
+        fifth: { label: "Perfekte Quinte (PDF-Standard)" },
+        fourth: { label: "Perfekte Quarte" },
+        third: { label: "Gro\xDFe Terz" },
+        unison: { label: "Unisono (Maximum Resonance)" },
+        pro: { label: "Profi-Durchschnitt (empirisch, n=22)" }
+      }
+    },
+    en: {
+      eyebrow: "Overtone Labs Formula",
+      subtitle: "Choose a fundamental note and resonance mode \u2014 the target frequency for every lug is calculated using the official Tune-Bot formula.",
+      setLabel: "Kit:",
+      setPlaceholder: "e.g. Rogers XP8, second kit...",
+      printedOn: "Printed on",
+      micLabel: "\u{1F3A4} Microphone:",
+      loadDevices: "Load devices",
+      defaultMic: "Default microphone",
+      micFallback: "Microphone",
+      printButton: "\u{1F5A8} Print / Save as PDF",
+      remove: "Remove",
+      typeLabel: "Type",
+      diameterLabel: 'Diameter (")',
+      depthLabel: 'Depth (")',
+      lugsLabel: "Lugs",
+      noteLabel: "Note",
+      octaveLabel: "Octave",
+      depthRatioInfo: "Depth/diameter",
+      referenceLabel: "reference",
+      calibratedActive: "Calibrated coefficient active: a =",
+      calibratedActiveSuffix: "(replaces depth approximation)",
+      multiplierShift: "Multiplier shift:",
+      shiftShallower: "(shallower \u2192 more tension needed)",
+      shiftDeeper: "(deeper \u2192 less tension needed)",
+      shiftMatches: "(matches reference)",
+      calibrateToggle: "Calibrate",
+      activeSuffix: "(active)",
+      calibrateInstructions: "Tune both heads to the same lug pitch (unison), strike the drum in the center (on a stand) and measure the real fundamental frequency with a Tune-Bot or the mic measurement below. Enter both values \u2014 this calculates your real coefficient and replaces the estimate above.",
+      calibLugLabel: "Lug frequency (unison)",
+      calibFundLabel: "Measured fundamental freq.",
+      apply: "Apply",
+      reset: "Reset",
+      intervalLabel: "Interval (reso vs. batter)",
+      resonanceModeLabel: "Resonance mode",
+      higherHeadLabel: "Higher head",
+      resoLower: "Resonant head (bottom)",
+      battTop: "Batter head (top)",
+      snareDescDefault: "Per the PDF snare section: resonant head higher than batter, default fifth (x1.5) \u2014 confirmed against real Tune-Bot device readings.",
+      snareDescPro: "Empirical average from 22 real pro snare tunings (tune-bot.com/artists).",
+      modeDescPro: "Empirical average from real artist tunings (tune-bot.com/artists).",
+      overLimitWarning: "\u26A0 Resonant head above 400 Hz \u2014 per the PDF, risk of overstretching; consider a smaller interval.",
+      fundamentalLabel: "Fundamental (drum tone)",
+      battLabel: "Batter head (lug)",
+      resoLabel: "Reso head (lug)",
+      playDrumTitle: "Play drum tone",
+      playToneTitle: "Play tone",
+      measureLabel: "Measure actual value (compare with microphone)",
+      addDrumButton: "+ Add drum",
+      lugRingCaption: "Numbers = cross-tuning order",
+      micStop: "Stop",
+      micMeasure: "Measure",
+      micMeasureTitle: "Measure via microphone (runs until you stop it, hit multiple times)",
+      micNoTone: "no tone detected",
+      micTryLouder: "try louder/closer",
+      footer1: "Formula per the Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = fundamental \xD7 1.75 (both heads); High = \xD71.5 / \xD71.85; Medium = \xD71.4 / \xD72.0; Low = \xD71.2 / \xD72.3.",
+      footer2Title: "On depth influence:",
+      footer2: "There is no official Tune-Bot formula for this \u2014 per the underlying patent, the real multiplier per drum is calibrated/measured, not calculated. The shift shown here is therefore our own plausible approximation based on the depth-to-diameter ratio compared to a typical reference value per drum type \u2014 not a confirmed industry standard. Use it as a rough starting point, not an exact target.",
+      footer3Title: "Calibrating:",
+      footer3: "If you enter a measured lug and fundamental frequency for a drum, your real coefficient (a = lug \xF7 fundamental) is calculated from it. This replaces the depth approximation for exactly this drum \u2014 noticeably more precise, since shell material, head type, and build are already baked in.",
+      footer4Title: "On the tone preview:",
+      footer4a: "The \u25B6 buttons next to batter/reso play a pure sine tone at the respective lug target frequency. The \u25B6 button next to the fundamental instead approximates the",
+      footer4b: "coupled",
+      footer4c: "sound of the whole drum (fundamental plus faint head partials and attack transient) \u2014 both are rough listening aids, not a realistic head or shell sound.",
+      footer5Title: "Cross-tuning order:",
+      footer5: "The numbers in the lug circle show not the physical position, but the recommended tuning order (always jump to the opposite or next-but-one lug, never work around the circle). Formula: Position(step) = \u230Astep/2\u230B + (step mod 2) \xD7 \u230AN/2\u230B \u2014 works for any even lug count.",
+      footer6Title: "Microphone measurement:",
+      footer6: 'The "\u{1F3A4} Measure" button per drum listens via the microphone and continuously computes the fundamental frequency using the YIN algorithm (industry standard). Works with the built-in mic of a phone/laptop; for more accurate results (especially low kick drum frequencies) a simple external clip-on microphone (roughly \u20AC15\u201330) helps. The browser asks for microphone permission once. Best to measure the snare with the wires disengaged, to keep buzz out of the signal.',
+      footer7Title: "Pro average:",
+      footer7: "This option is based on our own analysis of over 90 real drum tunings from professional drummers, published at tune-bot.com/artists (as analyzed by us). Snare values (n=22): batter \xD71.47, interval \xD71.29. Tom values (n=60): batter \xD71.60, reso \xD71.92. Kick values (n=14): batter \xD71.62, reso \xD71.82. Obvious scraping duplicates were removed before averaging.",
+      footer8Title: "Microphone measurement accuracy:",
+      footer8: "Results are limited to a plausible frequency range per drum type (kick 30\u2013160 Hz, toms 50\u2013350 Hz, snare 50\u2013450 Hz) and only accepted with sufficient reliability (YIN confidence), to filter out typical octave errors. Additionally, a median is taken over the last 5 valid readings to smooth out outliers. Even so, the built-in microphone hardware (frequency response, distance, room noise) remains the limiting factor \u2014 an external microphone closer to the head usually gives more reliable readings than the built-in laptop/phone mic from a distance.",
+      modes: {
+        maximum: { label: "Maximum (Unison)", desc: "Both heads equal \u2014 full sustain, open tone" },
+        high: { label: "High", desc: "Slight interval \u2014 more control, good for live use" },
+        medium: { label: "Medium", desc: "Clearer interval \u2014 crisper attack" },
+        low: { label: "Low", desc: "Largest interval \u2014 shortest sustain, lots of attack" },
+        pro: { label: "Pro average (empirical)", desc: "Average calculated from 60+ real artist tunings (tune-bot.com/artists)" }
+      },
+      snareIntervals: {
+        fifth: { label: "Perfect fifth (PDF default)" },
+        fourth: { label: "Perfect fourth" },
+        third: { label: "Major third" },
+        unison: { label: "Unison (Maximum Resonance)" },
+        pro: { label: "Pro average (empirical, n=22)" }
+      }
+    }
+  };
   function getAudioCtx(ref) {
     if (!ref.current) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -169,7 +345,7 @@
       }
     });
   }
-  function MicMeasureButton({ targetHz, accent = "#c9a15a", deviceId = "", minHz = 20, maxHz = 1e3 }) {
+  function MicMeasureButton({ targetHz, accent = "#c9a15a", deviceId = "", minHz = 20, maxHz = 1e3, labels = { stop: "Stoppen", measure: "Messen", title: "\xDCber Mikrofon messen", noTone: "kein Ton erkannt", tryLouder: "lauter/n\xE4her versuchen" } }) {
     const [status, setStatus] = useState("idle");
     const [measured, setMeasured] = useState(null);
     const [errorMsg, setErrorMsg] = useState("");
@@ -260,12 +436,12 @@
       "button",
       {
         onClick: handleClick,
-        title: status === "listening" ? "Stoppen" : "\xDCber Mikrofon messen (l\xE4uft bis du stoppst, mehrmals anschlagen m\xF6glich)",
+        title: status === "listening" ? labels.stop : labels.title,
         className: "text-sm uppercase tracking-wide border-2 rounded-md px-5 py-2.5 transition-colors font-semibold",
         style: status === "listening" ? { borderColor: accent, backgroundColor: accent, color: "#1a140d" } : { borderColor: accent, color: accent }
       },
-      status === "listening" ? "\u{1F3A4} Stoppen" : "\u{1F3A4} Messen"
-    ), measured != null && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: resultClass + " text-base", style: { fontFamily: "ui-monospace, monospace" } }, measured.toFixed(1), " Hz", delta != null ? ` (${delta >= 0 ? "+" : ""}${delta.toFixed(1)})` : "", status === "listening" ? "\u2026" : ""), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, "kein Ton erkannt", errorMsg ? ` (${errorMsg})` : " \u2014 lauter/n\xE4her versuchen"));
+      status === "listening" ? `\u{1F3A4} ${labels.stop}` : `\u{1F3A4} ${labels.measure}`
+    ), measured != null && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: resultClass + " text-base", style: { fontFamily: "ui-monospace, monospace" } }, measured.toFixed(1), " Hz", delta != null ? ` (${delta >= 0 ? "+" : ""}${delta.toFixed(1)})` : "", status === "listening" ? "\u2026" : ""), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, labels.noTone, errorMsg ? ` (${errorMsg})` : ` \u2014 ${labels.tryLouder}`));
   }
   const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   function noteToHz(noteName, octave) {
@@ -400,12 +576,14 @@
   }
   function TunebotCalculator() {
     const audioCtxRef = useRef(null);
+    const [lang, setLang] = useState("de");
+    const t = T[lang];
     const [micDeviceId, setMicDeviceId] = useState("");
     const [micDevices, setMicDevices] = useState([]);
     const loadMicDevices = async () => {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-        s.getTracks().forEach((t) => t.stop());
+        s.getTracks().forEach((t2) => t2.stop());
         const devices = await navigator.mediaDevices.enumerateDevices();
         setMicDevices(devices.filter((d) => d.kind === "audioinput"));
       } catch (e) {
@@ -421,7 +599,7 @@
     };
     const handlePrint = () => {
       const prevTitle = document.title;
-      document.title = `Tunebot - ${setName || "Set"}`;
+      document.title = `Fellton - ${setName || (lang === "de" ? "Set" : "Kit")}`;
       window.print();
       document.title = prevTitle;
     };
@@ -491,22 +669,22 @@
           .drum-card { break-inside: avoid; page-break-inside: avoid; margin-bottom: 16px; }
           input, select { border: none !important; padding: 0 !important; -webkit-appearance: none; appearance: none; }
         }
-      `), /* @__PURE__ */ React.createElement("header", { className: "border-b border-[#3a2c1a] px-6 py-8 md:px-10" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-5xl mx-auto flex items-start justify-between gap-4 flex-wrap" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c9a15a] text-xs tracking-[0.25em] uppercase mb-2" }, "Overtone Labs Formel"), /* @__PURE__ */ React.createElement("h1", { className: "text-3xl md:text-4xl", style: { fontFamily: "'Playfair Display', Georgia, serif" } }, "Tune-Bot Lug-Rechner"), /* @__PURE__ */ React.createElement("p", { className: "mt-2 text-[#a8977b] max-w-xl text-sm leading-relaxed" }, "Grundton w\xE4hlen, Resonance-Modus einstellen \u2014 die Ziel-Frequenz f\xFCr jeden Lug wird nach der offiziellen Tune-Bot-Formel berechnet."), /* @__PURE__ */ React.createElement("div", { className: "mt-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Set:"), /* @__PURE__ */ React.createElement(
+      `), /* @__PURE__ */ React.createElement("header", { className: "border-b border-[#3a2c1a] px-6 py-8 md:px-10" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-5xl mx-auto flex items-start justify-between gap-4 flex-wrap" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c9a15a] text-xs tracking-[0.25em] uppercase mb-2" }, t.eyebrow), /* @__PURE__ */ React.createElement("h1", { className: "text-3xl md:text-4xl", style: { fontFamily: "'Playfair Display', Georgia, serif" } }, "Fellton"), /* @__PURE__ */ React.createElement("p", { className: "mt-2 text-[#a8977b] max-w-xl text-sm leading-relaxed" }, t.subtitle), /* @__PURE__ */ React.createElement("div", { className: "mt-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.setLabel), /* @__PURE__ */ React.createElement(
       "input",
       {
         value: setName,
         onChange: (e) => setSetName(e.target.value),
-        placeholder: "z.B. Rogers XP8, Zweitset...",
+        placeholder: t.setPlaceholder,
         className: "bg-transparent text-lg border-b border-transparent hover:border-[#5c4a33] focus:border-[#c9a15a] outline-none px-1 py-0.5",
         style: { fontFamily: "'Playfair Display', Georgia, serif" }
       }
-    )), /* @__PURE__ */ React.createElement("p", { className: "print-only text-xs text-[#6b5d47] mt-2" }, "Ausgedruckt am ", (/* @__PURE__ */ new Date()).toLocaleDateString("de-DE")), /* @__PURE__ */ React.createElement("div", { className: "no-print mt-4 flex items-center gap-3 flex-wrap border border-[#5c4a33] bg-[#211910] rounded-md px-4 py-3" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#c9a15a] text-xs uppercase tracking-wide font-semibold" }, "\u{1F3A4} Mikrofon:"), micDevices.length === 0 ? /* @__PURE__ */ React.createElement(
+    )), /* @__PURE__ */ React.createElement("p", { className: "print-only text-xs text-[#6b5d47] mt-2" }, t.printedOn, " ", (/* @__PURE__ */ new Date()).toLocaleDateString(lang === "de" ? "de-DE" : "en-US")), /* @__PURE__ */ React.createElement("div", { className: "no-print mt-4 flex items-center gap-3 flex-wrap border border-[#5c4a33] bg-[#211910] rounded-md px-4 py-3" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#c9a15a] text-xs uppercase tracking-wide font-semibold" }, t.micLabel), micDevices.length === 0 ? /* @__PURE__ */ React.createElement(
       "button",
       {
         onClick: loadMicDevices,
         className: "text-xs uppercase tracking-wide text-[#1a140d] bg-[#c9a15a] border border-[#c9a15a] rounded-sm px-3 py-1.5 hover:bg-[#e8c07a] transition-colors font-semibold"
       },
-      "Ger\xE4te laden"
+      t.loadDevices
     ) : /* @__PURE__ */ React.createElement(
       "select",
       {
@@ -514,16 +692,30 @@
         onChange: (e) => setMicDeviceId(e.target.value),
         className: "bg-[#170f09] border border-[#c9a15a] rounded-sm px-3 py-1.5 text-sm outline-none focus:border-[#e8c07a] text-[#e8dcc4]"
       },
-      /* @__PURE__ */ React.createElement("option", { value: "" }, "Standard-Mikrofon"),
-      micDevices.map((d) => /* @__PURE__ */ React.createElement("option", { key: d.deviceId, value: d.deviceId }, d.label || "Mikrofon"))
-    ))), /* @__PURE__ */ React.createElement(
+      /* @__PURE__ */ React.createElement("option", { value: "" }, t.defaultMic),
+      micDevices.map((d) => /* @__PURE__ */ React.createElement("option", { key: d.deviceId, value: d.deviceId }, d.label || t.micFallback))
+    ))), /* @__PURE__ */ React.createElement("div", { className: "no-print shrink-0 flex items-center gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex border border-[#5c4a33] rounded-sm overflow-hidden" }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setLang("de"),
+        className: `text-xs uppercase tracking-wide px-3 py-2 transition-colors ${lang === "de" ? "bg-[#c9a15a] text-[#1a140d]" : "text-[#c9a15a] hover:bg-[#3a2c1a]"}`
+      },
+      "DE"
+    ), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setLang("en"),
+        className: `text-xs uppercase tracking-wide px-3 py-2 transition-colors ${lang === "en" ? "bg-[#c9a15a] text-[#1a140d]" : "text-[#c9a15a] hover:bg-[#3a2c1a]"}`
+      },
+      "EN"
+    )), /* @__PURE__ */ React.createElement(
       "button",
       {
         onClick: handlePrint,
-        className: "no-print shrink-0 text-xs uppercase tracking-wide border border-[#c9a15a] text-[#c9a15a] rounded-sm px-4 py-2.5 hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors"
+        className: "text-xs uppercase tracking-wide border border-[#c9a15a] text-[#c9a15a] rounded-sm px-4 py-2.5 hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors"
       },
-      "\u{1F5A8} Drucken / Als PDF speichern"
-    ))), /* @__PURE__ */ React.createElement("main", { className: "max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-6" }, drums.map((d) => {
+      t.printButton
+    )))), /* @__PURE__ */ React.createElement("main", { className: "max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-6" }, drums.map((d) => {
       var _a;
       const fundamentalHz = noteToHz(d.note, d.octave);
       const isSnare = d.type === "Snare";
@@ -545,16 +737,16 @@
           onClick: () => removeDrum(d.id),
           className: "no-print text-[#a8756a] hover:text-[#d99a8c] text-xs tracking-wide uppercase"
         },
-        "Entfernen"
-      )), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6" }, /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Typ"), /* @__PURE__ */ React.createElement(
+        t.remove
+      )), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6" }, /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.typeLabel), /* @__PURE__ */ React.createElement(
         "select",
         {
           value: d.type,
           onChange: (e) => updateDrum(d.id, { type: e.target.value }),
           className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
         },
-        Object.keys(REFERENCE_RATIO).map((t) => /* @__PURE__ */ React.createElement("option", { key: t, value: t }, t))
-      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, 'Durchmesser (")'), /* @__PURE__ */ React.createElement(
+        Object.keys(REFERENCE_RATIO).map((t2) => /* @__PURE__ */ React.createElement("option", { key: t2, value: t2 }, t2))
+      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.diameterLabel), /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "text",
@@ -568,7 +760,7 @@
           },
           className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
         }
-      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, 'Tiefe (")'), /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.depthLabel), /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "text",
@@ -582,7 +774,7 @@
           },
           className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
         }
-      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Lugs"), /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.lugsLabel), /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "number",
@@ -590,7 +782,7 @@
           onChange: (e) => updateDrum(d.id, { lugs: Number(e.target.value) }),
           className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
         }
-      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Grundton"), /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.noteLabel), /* @__PURE__ */ React.createElement(
         "select",
         {
           value: d.note,
@@ -598,7 +790,7 @@
           className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
         },
         NOTE_NAMES.map((n) => /* @__PURE__ */ React.createElement("option", { key: n, value: n }, n))
-      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Oktave"), /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.octaveLabel), /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "number",
@@ -606,16 +798,18 @@
           onChange: (e) => updateDrum(d.id, { octave: Number(e.target.value) }),
           className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
         }
-      ))), /* @__PURE__ */ React.createElement("div", { className: "text-xs text-[#8a7a5f] flex flex-wrap gap-x-4 gap-y-1" }, /* @__PURE__ */ React.createElement("span", null, "Tiefe/Durchmesser: ", ratio.toFixed(2), " (Referenz ", d.type, ": ", refRatio.toFixed(2), ")"), calibrated ? /* @__PURE__ */ React.createElement("span", { className: "text-[#c9a15a]" }, "Kalibrierter Koeffizient aktiv: a = ", d.calibratedA.toFixed(3), " (ersetzt Tiefen-N\xE4herung)") : /* @__PURE__ */ React.createElement("span", { className: shift > 1e-3 ? "text-[#c1666b]" : shift < -1e-3 ? "text-[#7fa593]" : "" }, "Multiplikator-Shift: ", shift >= 0 ? "+" : "", shift.toFixed(3), shift > 1e-3 ? " (flacher \u2192 mehr Spannung n\xF6tig)" : shift < -1e-3 ? " (tiefer \u2192 weniger Spannung n\xF6tig)" : " (entspricht Referenz)")), /* @__PURE__ */ React.createElement("div", { className: "no-print border border-[#3a2c1a] rounded-sm p-3 bg-[#170f09]" }, /* @__PURE__ */ React.createElement(
+      ))), /* @__PURE__ */ React.createElement("div", { className: "text-xs text-[#8a7a5f] flex flex-wrap gap-x-4 gap-y-1" }, /* @__PURE__ */ React.createElement("span", null, t.depthRatioInfo, ": ", ratio.toFixed(2), " (", t.referenceLabel, " ", d.type, ": ", refRatio.toFixed(2), ")"), calibrated ? /* @__PURE__ */ React.createElement("span", { className: "text-[#c9a15a]" }, t.calibratedActive, " ", d.calibratedA.toFixed(3), " ", t.calibratedActiveSuffix) : /* @__PURE__ */ React.createElement("span", { className: shift > 1e-3 ? "text-[#c1666b]" : shift < -1e-3 ? "text-[#7fa593]" : "" }, t.multiplierShift, " ", shift >= 0 ? "+" : "", shift.toFixed(3), " ", shift > 1e-3 ? t.shiftShallower : shift < -1e-3 ? t.shiftDeeper : t.shiftMatches)), /* @__PURE__ */ React.createElement("div", { className: "no-print border border-[#3a2c1a] rounded-sm p-3 bg-[#170f09]" }, /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => updateDrum(d.id, { showCalib: !d.showCalib }),
           className: "text-xs uppercase tracking-wide text-[#c9a15a] hover:text-[#e8c07a]"
         },
         d.showCalib ? "\u2212" : "+",
-        " Kalibrieren ",
-        calibrated ? "(aktiv)" : ""
-      ), d.showCalib && /* @__PURE__ */ React.createElement("div", { className: "mt-3 space-y-3" }, /* @__PURE__ */ React.createElement("p", { className: "text-xs text-[#8a7a5f] leading-relaxed" }, "Stimme beide Felle unisono auf einen beliebigen Lug-Wert, schlage die Trommel mittig an (auf St\xE4nder) und miss die reale Fundamentalfrequenz mit dem Tunebot. Trag beide Werte ein \u2014 daraus wird dein echter Koeffizient berechnet und ersetzt die Sch\xE4tzung oben."), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Lug-Frequenz (unisono)"), /* @__PURE__ */ React.createElement(
+        " ",
+        t.calibrateToggle,
+        " ",
+        calibrated ? t.activeSuffix : ""
+      ), d.showCalib && /* @__PURE__ */ React.createElement("div", { className: "mt-3 space-y-3" }, /* @__PURE__ */ React.createElement("p", { className: "text-xs text-[#8a7a5f] leading-relaxed" }, t.calibrateInstructions), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.calibLugLabel), /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "number",
@@ -624,7 +818,7 @@
           onChange: (e) => updateDrum(d.id, { calibLugInput: e.target.value }),
           className: "bg-[#211910] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
         }
-      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Gemessene Fundamentalfreq."), /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.calibFundLabel), /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "number",
@@ -639,80 +833,81 @@
           onClick: () => applyCalibration(d),
           className: "text-xs uppercase tracking-wide bg-[#c9a15a] text-[#1a140d] px-3 py-1.5 rounded-sm hover:bg-[#e8c07a]"
         },
-        "\xDCbernehmen"
+        t.apply
       ), calibrated && /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => resetCalibration(d.id),
           className: "text-xs uppercase tracking-wide text-[#a8756a] hover:text-[#d99a8c] px-3 py-1.5"
         },
-        "Zur\xFCcksetzen"
-      )))), isSnare ? /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Intervall (Resofell zu Schlagfell)"), /* @__PURE__ */ React.createElement(
+        t.reset
+      )))), isSnare ? /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.intervalLabel), /* @__PURE__ */ React.createElement(
         "select",
         {
           value: d.snareInterval,
           onChange: (e) => updateDrum(d.id, { snareInterval: e.target.value }),
           className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
         },
-        Object.entries(SNARE_INTERVALS).map(([key, iv]) => /* @__PURE__ */ React.createElement("option", { key, value: key }, iv.label))
-      ))) : /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "Resonance-Modus"), /* @__PURE__ */ React.createElement(
+        Object.entries(SNARE_INTERVALS).map(([key]) => /* @__PURE__ */ React.createElement("option", { key, value: key }, t.snareIntervals[key].label))
+      ))) : /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm" }, /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.resonanceModeLabel), /* @__PURE__ */ React.createElement(
         "select",
         {
           value: d.mode,
           onChange: (e) => updateDrum(d.id, { mode: e.target.value }),
           className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
         },
-        Object.entries(RESONANCE_MODES).map(([key, m]) => /* @__PURE__ */ React.createElement("option", { key, value: key }, m.label))
-      )), d.mode !== "maximum" && /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, "H\xF6heres Fell"), /* @__PURE__ */ React.createElement(
+        Object.entries(RESONANCE_MODES).map(([key]) => /* @__PURE__ */ React.createElement("option", { key, value: key }, t.modes[key].label))
+      )), d.mode !== "maximum" && /* @__PURE__ */ React.createElement("label", { className: "flex flex-col gap-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-[#a8977b] text-xs uppercase tracking-wide" }, t.higherHeadLabel), /* @__PURE__ */ React.createElement(
         "select",
         {
           value: d.higherHead,
           onChange: (e) => updateDrum(d.id, { higherHead: e.target.value }),
           className: "bg-[#170f09] border border-[#3a2c1a] rounded-sm px-2 py-1.5 outline-none focus:border-[#c9a15a]"
         },
-        /* @__PURE__ */ React.createElement("option", { value: "bottom" }, "Resonanzfell (unten)"),
-        /* @__PURE__ */ React.createElement("option", { value: "top" }, "Schlagfell (oben)")
-      ))), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-[#8a7a5f] italic" }, isSnare ? d.snareInterval === "pro" ? "Empirischer Durchschnitt aus 22 realen Profi-Snare-Tunings (tune-bot.com/artists)." : "Laut PDF-Snare-Abschnitt: Resofell h\xF6her als Schlagfell, Standard Quinte (x1,5) \u2014 best\xE4tigt gegen echte Tune-Bot-Ger\xE4tewerte." : d.mode === "pro" ? "Empirischer Durchschnitt aus realen Artist-Tunings (tune-bot.com/artists)." : mode.desc), isSnare && overLimit && /* @__PURE__ */ React.createElement("p", { className: "text-xs text-[#c1666b]" }, "\u26A0 Resofell \xFCber 400 Hz \u2014 laut PDF \xDCberdehnungsgefahr, evtl. kleineres Intervall w\xE4hlen."), /* @__PURE__ */ React.createElement("div", { className: "flex gap-6 pt-2 border-t border-[#3a2c1a] items-start flex-wrap" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#a8977b] text-xs uppercase tracking-wide mb-1" }, "Grundton (Trommelklang)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, fundamentalHz.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
+        /* @__PURE__ */ React.createElement("option", { value: "bottom" }, t.resoLower),
+        /* @__PURE__ */ React.createElement("option", { value: "top" }, t.battTop)
+      ))), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-[#8a7a5f] italic" }, isSnare ? d.snareInterval === "pro" ? t.snareDescPro : t.snareDescDefault : d.mode === "pro" ? t.modeDescPro : t.modes[d.mode].desc), isSnare && overLimit && /* @__PURE__ */ React.createElement("p", { className: "text-xs text-[#c1666b]" }, t.overLimitWarning), /* @__PURE__ */ React.createElement("div", { className: "flex gap-6 pt-2 border-t border-[#3a2c1a] items-start flex-wrap" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#a8977b] text-xs uppercase tracking-wide mb-1" }, t.fundamentalLabel), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, fundamentalHz.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => handlePlayDrum(fundamentalHz, top, bottom),
-          title: "Trommelklang abspielen",
+          title: t.playDrumTitle,
           className: "no-print w-7 h-7 rounded-full border border-[#c9a15a] text-[#c9a15a] hover:bg-[#c9a15a] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
-      ))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c1666b] text-xs uppercase tracking-wide mb-1" }, "Schlagfell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, top.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
+      ))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#c1666b] text-xs uppercase tracking-wide mb-1" }, t.battLabel), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, top.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => handlePlay(top),
-          title: "Ton abspielen",
+          title: t.playToneTitle,
           className: "no-print w-7 h-7 rounded-full border border-[#c1666b] text-[#c1666b] hover:bg-[#c1666b] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
-      ))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#7fa593] text-xs uppercase tracking-wide mb-1" }, "Resofell (Lug)"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, bottom.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
+      ))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-[#7fa593] text-xs uppercase tracking-wide mb-1" }, t.resoLabel), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg", style: { fontFamily: "ui-monospace, monospace" } }, bottom.toFixed(1), " Hz"), /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => handlePlay(bottom),
-          title: "Ton abspielen",
+          title: t.playToneTitle,
           className: "no-print w-7 h-7 rounded-full border border-[#7fa593] text-[#7fa593] hover:bg-[#7fa593] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
-      )))), /* @__PURE__ */ React.createElement("div", { className: "pt-1" }, /* @__PURE__ */ React.createElement("p", { className: "text-[#a8977b] text-[10px] uppercase tracking-wide mb-1" }, "Ist-Wert messen (mit Mikrofon abgleichen)"), /* @__PURE__ */ React.createElement(
+      )))), /* @__PURE__ */ React.createElement("div", { className: "pt-1" }, /* @__PURE__ */ React.createElement("p", { className: "text-[#a8977b] text-[10px] uppercase tracking-wide mb-1" }, t.measureLabel), /* @__PURE__ */ React.createElement(
         MicMeasureButton,
         {
           accent: "#c9a15a",
           deviceId: micDeviceId,
           minHz: (MIC_RANGE[d.type] || MIC_RANGE["Tom"]).min,
-          maxHz: (MIC_RANGE[d.type] || MIC_RANGE["Tom"]).max
+          maxHz: (MIC_RANGE[d.type] || MIC_RANGE["Tom"]).max,
+          labels: { stop: t.micStop, measure: t.micMeasure, title: t.micMeasureTitle, noTone: t.micNoTone, tryLouder: t.micTryLouder }
         }
-      ))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-2 justify-center" }, /* @__PURE__ */ React.createElement(LugRing, { lugs: d.lugs, topHz: top, idPrefix: d.id }), /* @__PURE__ */ React.createElement("p", { className: "text-[10px] text-[#8a7a5f] uppercase tracking-wide text-center max-w-[160px]" }, "Zahlen = Kreuz-Stimmreihenfolge"))));
+      ))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-2 justify-center" }, /* @__PURE__ */ React.createElement(LugRing, { lugs: d.lugs, topHz: top, idPrefix: d.id }), /* @__PURE__ */ React.createElement("p", { className: "text-[10px] text-[#8a7a5f] uppercase tracking-wide text-center max-w-[160px]" }, t.lugRingCaption))));
     }), /* @__PURE__ */ React.createElement(
       "button",
       {
         onClick: addDrum,
         className: "no-print w-full border border-dashed border-[#5c4a33] rounded-sm py-3 text-[#c9a15a] hover:border-[#c9a15a] hover:bg-[#211910] transition-colors text-sm uppercase tracking-wide"
       },
-      "+ Trommel hinzuf\xFCgen"
-    ), /* @__PURE__ */ React.createElement("footer", { className: "pt-6 text-xs text-[#6b5d47] leading-relaxed border-t border-[#3a2c1a] space-y-2" }, /* @__PURE__ */ React.createElement("p", null, "Formel nach Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Tiefen-Einfluss:"), " Es gibt daf\xFCr keine offizielle Tune-Bot-Formel \u2014 laut zugeh\xF6rigem Patent wird der reale Multiplikator pro Trommel kalibriert/gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Industriestandard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Kalibrieren:"), " Tr\xE4gst du bei einer Trommel eine gemessene Lug- und Fundamentalfrequenz ein, wird daraus dein realer Koeffizient (a = Lug \xF7 Fundamental) berechnet. Dieser ersetzt dann die Tiefen-N\xE4herung f\xFCr genau diese Trommel \u2014 deutlich pr\xE4ziser, weil Kesselmaterial, Felltyp und Bauart darin bereits stecken."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Zum Ton-Preview:"), " Die \u25B6-Buttons bei Schlag-/ Resofell spielen einen reinen Sinuston bei der jeweiligen Lug-Zielfrequenz. Der \u25B6-Button beim Grundton simuliert stattdessen n\xE4herungsweise den ", /* @__PURE__ */ React.createElement("em", null, "gekoppelten"), " Klang der ganzen Trommel (Fundamentalton plus leise Fell-Partialt\xF6ne und Attack-Transient) \u2014 beides sind H\xF6reinsch\xE4tzungen zur Orientierung, kein realistischer Fell- oder Kesselklang."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Kreuz-Stimmreihenfolge:"), " Die Zahlen im Lug-Kreis zeigen nicht die physische Position, sondern die empfohlene Reihenfolge beim Stimmen (immer zum gegen\xFCberliegenden bzw. \xFCbern\xE4chsten Lug springen, nie im Kreis herum). Formel: Position(Schritt) = \u230ASchritt/2\u230B + (Schritt mod 2) \xD7 \u230AN/2\u230B \u2014 funktioniert f\xFCr jede gerade Lug-Anzahl."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Mikrofon-Messung:"), ' Der "\u{1F3A4} Messen"-Button pro Trommel h\xF6rt \xFCber das Mikrofon zu und berechnet die Grundfrequenz laufend mit dem YIN-Algorithmus (Industriestandard). Funktioniert mit dem eingebauten Mikrofon von Handy/Laptop; f\xFCr genauere Ergebnisse (v.a. bei tiefen Bassdrum-Frequenzen) reicht ein einfaches externes Klemmmikrofon (ca. 15\u201330\xA0\u20AC). Der Browser fragt einmalig um Mikrofon-Erlaubnis. Snare am besten mit ausgeh\xE4ngtem Teppich messen, um Rasseln aus dem Signal fernzuhalten.'), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Profi-Durchschnitt:"), " Diese Option basiert auf einer eigenen Auswertung von \xFCber 90 realen Trommel-Tunings professioneller Drummer, ver\xF6ffentlicht auf tune-bot.com/artists (Stand: eigene Analyse). Snare-Werte (n=22): Schlagfell \xD71,47, Intervall \xD71,29. Tom-Werte (n=60): Schlagfell \xD71,60, Resofell \xD71,92. Bassdrum-Werte (n=14): Schlagfell \xD71,62, Resofell \xD71,82. Offensichtliche Scraping-Duplikate wurden vor der Mittelwertbildung entfernt."), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, "Genauigkeit der Mikrofon-Messung:"), " Ergebnisse werden auf einen plausiblen Frequenzbereich je Trommelart begrenzt (Bassdrum 30\u2013160 Hz, Toms 50\u2013350 Hz, Snare 50\u2013450 Hz) und nur bei ausreichender Zuverl\xE4ssigkeit (YIN-Confidence) \xFCbernommen, um typische Oktavfehler herauszufiltern. Zus\xE4tzlich wird \xFCber die letzten 5 g\xFCltigen Messungen der Median gebildet, um einzelne Ausrei\xDFer zu gl\xE4tten. Trotzdem bleibt die eingebaute Mikrofon-Hardware (Frequenzgang, Abstand, Raumger\xE4usche) der limitierende Faktor \u2014 ein externes Mikrofon n\xE4her am Fell liefert meist zuverl\xE4ssigere Werte als das eingebaute Laptop-/Handy-Mikrofon aus der Distanz."))));
+      t.addDrumButton
+    ), /* @__PURE__ */ React.createElement("footer", { className: "pt-6 text-xs text-[#6b5d47] leading-relaxed border-t border-[#3a2c1a] space-y-2" }, /* @__PURE__ */ React.createElement("p", null, t.footer1), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer2Title), " ", t.footer2), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer3Title), " ", t.footer3), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer4Title), " ", t.footer4a, " ", /* @__PURE__ */ React.createElement("em", null, t.footer4b), " ", t.footer4c), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer5Title), " ", t.footer5), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer6Title), " ", t.footer6), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer7Title), " ", t.footer7), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer8Title), " ", t.footer8))));
   }
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(/* @__PURE__ */ React.createElement(TunebotCalculator, null));
