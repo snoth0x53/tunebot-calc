@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Mikrofon-Test</title>
+<title>Fellton – Mikrofon-Test</title>
 <style>
   :root {
     --bg: #1a140d; --card: #211910; --card2: #170f09; --border: #3a2c1a;
@@ -47,9 +47,17 @@
 <body>
 
 <header>
-  <p class="eyebrow">Diagnose-Werkzeug</p>
-  <h1>Mikrofon-Test</h1>
-  <p class="sub">Testet ein Mikrofon-Setup live, bevor es im Tune-Bot-Rechner zum Einsatz kommt:
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+    <div>
+      <p class="eyebrow" data-i18n="eyebrow">Diagnose-Werkzeug</p>
+      <h1 data-i18n="title">Mikrofon-Test</h1>
+    </div>
+    <div style="display:flex; border:1px solid var(--border); border-radius:3px; overflow:hidden; flex-shrink:0;">
+      <button id="langDe" style="border:none; border-radius:0; padding:8px 14px;">DE</button>
+      <button id="langEn" style="border:none; border-radius:0; padding:8px 14px;">EN</button>
+    </div>
+  </div>
+  <p class="sub" data-i18n="sub">Testet ein Mikrofon-Setup live, bevor es in Fellton zum Einsatz kommt:
   Pegel, Frequenzspektrum und laufende Tonhöhenerkennung per YIN-Algorithmus. So lässt sich vergleichen,
   wie sauber verschiedene Mikrofone (eingebaut, USB-Lavalier, DIY-Nahfeld-Halterung) einen Trommelanschlag erfassen.</p>
 </header>
@@ -58,39 +66,39 @@
   <div class="card">
     <div class="row">
       <div>
-        <label for="deviceSelect">Eingabegerät</label>
-        <select id="deviceSelect"><option value="">Erst auf "Starten" klicken…</option></select>
+        <label for="deviceSelect" data-i18n="deviceLabel">Eingabegerät</label>
+        <select id="deviceSelect"><option value="" data-i18n="placeholderOption">Erst auf "Starten" klicken…</option></select>
       </div>
       <div style="flex: 0 0 auto;">
-        <button id="startBtn">Starten</button>
-        <button id="stopBtn" disabled>Stoppen</button>
+        <button id="startBtn" data-i18n="startBtn">Starten</button>
+        <button id="stopBtn" disabled data-i18n="stopBtn">Stoppen</button>
       </div>
     </div>
-    <p class="hint"><span class="statusDot" id="statusDot"></span><span id="statusText">Nicht verbunden</span></p>
+    <p class="hint"><span class="statusDot" id="statusDot"></span><span id="statusText" data-i18n="notConnected">Nicht verbunden</span></p>
   </div>
 
   <div class="card">
-    <div class="pitchLabel">Live erkannte Frequenz</div>
+    <div class="pitchLabel" data-i18n="livePitchLabel">Live erkannte Frequenz</div>
     <div class="pitchDisplay" id="pitchDisplay">— Hz</div>
     <div class="meterWrap"><div class="meterBar" id="meterBar"></div></div>
-    <p class="hint">Pegel (RMS). Je lauter/klarer der Anschlag, desto zuverlässiger die Erkennung.</p>
+    <p class="hint" data-i18n="levelHint">Pegel (RMS). Je lauter/klarer der Anschlag, desto zuverlässiger die Erkennung.</p>
   </div>
 
   <div class="card">
-    <label>Wellenform (Zeitbereich)</label>
+    <label data-i18n="waveformLabel">Wellenform (Zeitbereich)</label>
     <canvas id="waveCanvas" height="120"></canvas>
   </div>
 
   <div class="card">
-    <label>Frequenzspektrum</label>
+    <label data-i18n="spectrumLabel">Frequenzspektrum</label>
     <canvas id="freqCanvas" height="140"></canvas>
   </div>
 
   <div class="card">
-    <label>Erkannte Anschläge (letzte 10)</label>
+    <label data-i18n="hitsLabel">Erkannte Anschläge (letzte 10)</label>
     <table>
-      <thead><tr><th>#</th><th>Zeit</th><th>Frequenz</th><th>Pegel</th></tr></thead>
-      <tbody id="hitLog"><tr><td colspan="4" style="color: var(--muted);">Noch keine Anschläge erkannt.</td></tr></tbody>
+      <thead><tr><th>#</th><th data-i18n="thTime">Zeit</th><th data-i18n="thFreq">Frequenz</th><th data-i18n="thLevel">Pegel</th></tr></thead>
+      <tbody id="hitLog"><tr><td colspan="4" style="color: var(--muted);" data-i18n="noHitsYet">Noch keine Anschläge erkannt.</td></tr></tbody>
     </table>
   </div>
 </main>
@@ -109,6 +117,62 @@
   const hitLog = document.getElementById('hitLog');
   const waveCtx = waveCanvas.getContext('2d');
   const freqCtx = freqCanvas.getContext('2d');
+  const langDeBtn = document.getElementById('langDe');
+  const langEnBtn = document.getElementById('langEn');
+
+  const TT = {
+    de: {
+      eyebrow: 'Diagnose-Werkzeug', title: 'Mikrofon-Test',
+      sub: 'Testet ein Mikrofon-Setup live, bevor es in Fellton zum Einsatz kommt: Pegel, Frequenzspektrum und laufende Tonhöhenerkennung per YIN-Algorithmus. So lässt sich vergleichen, wie sauber verschiedene Mikrofone (eingebaut, USB-Lavalier, DIY-Nahfeld-Halterung) einen Trommelanschlag erfassen.',
+      deviceLabel: 'Eingabegerät', placeholderOption: 'Erst auf "Starten" klicken…',
+      startBtn: 'Starten', stopBtn: 'Stoppen',
+      notConnected: 'Nicht verbunden', liveListening: 'Live — hört zu', stopped: 'Gestoppt', errorPrefix: 'Fehler: ',
+      livePitchLabel: 'Live erkannte Frequenz',
+      levelHint: 'Pegel (RMS). Je lauter/klarer der Anschlag, desto zuverlässiger die Erkennung.',
+      waveformLabel: 'Wellenform (Zeitbereich)', spectrumLabel: 'Frequenzspektrum',
+      hitsLabel: 'Erkannte Anschläge (letzte 10)',
+      thTime: 'Zeit', thFreq: 'Frequenz', thLevel: 'Pegel',
+      noHitsYet: 'Noch keine Anschläge erkannt.',
+      micFallback: 'Mikrofon',
+    },
+    en: {
+      eyebrow: 'Diagnostic Tool', title: 'Microphone Test',
+      sub: "Tests a microphone setup live before it's used in Fellton: level, frequency spectrum, and continuous pitch detection via the YIN algorithm. This lets you compare how cleanly different microphones (built-in, USB lavalier, DIY near-field mount) pick up a drum hit.",
+      deviceLabel: 'Input device', placeholderOption: 'Click "Start" first…',
+      startBtn: 'Start', stopBtn: 'Stop',
+      notConnected: 'Not connected', liveListening: 'Live — listening', stopped: 'Stopped', errorPrefix: 'Error: ',
+      livePitchLabel: 'Live detected frequency',
+      levelHint: 'Level (RMS). The louder/clearer the hit, the more reliable the detection.',
+      waveformLabel: 'Waveform (time domain)', spectrumLabel: 'Frequency spectrum',
+      hitsLabel: 'Detected hits (last 10)',
+      thTime: 'Time', thFreq: 'Frequency', thLevel: 'Level',
+      noHitsYet: 'No hits detected yet.',
+      micFallback: 'Microphone',
+    },
+  };
+  let lang = 'de';
+
+  function applyLang() {
+    const dict = TT[lang];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (dict[key] !== undefined) el.textContent = dict[key];
+    });
+    langDeBtn.style.background = lang === 'de' ? 'var(--gold)' : 'none';
+    langDeBtn.style.color = lang === 'de' ? 'var(--bg)' : 'var(--gold)';
+    langEnBtn.style.background = lang === 'en' ? 'var(--gold)' : 'none';
+    langEnBtn.style.color = lang === 'en' ? 'var(--bg)' : 'var(--gold)';
+    // Laufenden Status neu setzen (dynamischer Text, nicht data-i18n-markiert)
+    if (!audioCtx) {
+      statusText.textContent = dict.notConnected;
+    } else {
+      statusText.textContent = dict.liveListening;
+    }
+    if (hits.length === 0) renderHitLog();
+  }
+
+  langDeBtn.addEventListener('click', () => { lang = 'de'; applyLang(); });
+  langEnBtn.addEventListener('click', () => { lang = 'en'; applyLang(); });
 
   let audioCtx = null, analyser = null, source = null, stream = null;
   let rafId = null;
@@ -174,7 +238,7 @@
     mics.forEach((d, i) => {
       const opt = document.createElement('option');
       opt.value = d.deviceId;
-      opt.textContent = d.label || `Mikrofon ${i + 1}`;
+      opt.textContent = d.label || `${TT[lang].micFallback} ${i + 1}`;
       deviceSelect.appendChild(opt);
     });
   }
@@ -203,7 +267,7 @@
       fitCanvas(freqCanvas);
 
       statusDot.classList.add('live');
-      statusText.textContent = 'Live — hört zu';
+      statusText.textContent = TT[lang].liveListening;
       startBtn.disabled = true;
       stopBtn.disabled = false;
       deviceSelect.disabled = true;
@@ -211,7 +275,7 @@
       renderHitLog();
       loop();
     } catch (err) {
-      statusText.textContent = 'Fehler: ' + err.message;
+      statusText.textContent = TT[lang].errorPrefix + err.message;
     }
   }
 
@@ -221,7 +285,7 @@
     if (audioCtx) audioCtx.close();
     audioCtx = null; analyser = null; source = null; stream = null;
     statusDot.classList.remove('live');
-    statusText.textContent = 'Gestoppt';
+    statusText.textContent = TT[lang].stopped;
     startBtn.disabled = false;
     stopBtn.disabled = true;
     deviceSelect.disabled = false;
@@ -232,7 +296,7 @@
 
   function renderHitLog() {
     if (hits.length === 0) {
-      hitLog.innerHTML = '<tr><td colspan="4" style="color: var(--muted);">Noch keine Anschläge erkannt.</td></tr>';
+      hitLog.innerHTML = `<tr><td colspan="4" style="color: var(--muted);">${TT[lang].noHitsYet}</td></tr>`;
       return;
     }
     hitLog.innerHTML = hits.slice(-10).reverse().map((h, i) => `
@@ -318,6 +382,8 @@
     const mics = devices.filter(d => d.kind === 'audioinput');
     if (mics.length && mics[0].label) populateDevices();
   }).catch(() => {});
+
+  applyLang();
 })();
 </script>
 
