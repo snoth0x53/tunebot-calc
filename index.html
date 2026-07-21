@@ -90,7 +90,7 @@
       footer7Title: "Profi-Durchschnitt:",
       footer7: "Diese Option basiert auf einer eigenen Auswertung von \xFCber 90 realen Trommel-Tunings professioneller Drummer, ver\xF6ffentlicht auf tune-bot.com/artists (Stand: eigene Analyse). Snare-Werte (n=22): Schlagfell \xD71,47, Intervall \xD71,29. Tom-Werte (n=60): Schlagfell \xD71,60, Resofell \xD71,92. Bassdrum-Werte (n=14): Schlagfell \xD71,62, Resofell \xD71,82. Offensichtliche Scraping-Duplikate wurden vor der Mittelwertbildung entfernt.",
       footer8Title: "Genauigkeit der Mikrofon-Messung:",
-      footer8: "Ergebnisse werden auf einen plausiblen Frequenzbereich je Trommelart begrenzt (Bassdrum 30\u2013160 Hz, Toms 50\u2013350 Hz, Snare 50\u2013450 Hz) und nur bei ausreichender Zuverl\xE4ssigkeit (YIN-Confidence) \xFCbernommen, um typische Oktavfehler herauszufiltern. Pro Schlag wird kurz nach dem Anschlag genau eine Messung eingefroren (nicht \xFCber den Ausklang gemittelt, der sonst sp\xFCrbar abdriften kann); \xFCber die letzten 5 Schl\xE4ge wird zus\xE4tzlich der Median gebildet, um einzelne Ausrei\xDFer zu gl\xE4tten. Trotzdem bleibt die eingebaute Mikrofon-Hardware (Frequenzgang, Abstand, Raumger\xE4usche) der limitierende Faktor \u2014 ein externes Mikrofon n\xE4her am Fell liefert meist zuverl\xE4ssigere Werte als das eingebaute Laptop-/Handy-Mikrofon aus der Distanz.",
+      footer8: "Ergebnisse werden auf einen plausiblen Frequenzbereich je Trommelart begrenzt (Bassdrum 30\u2013160 Hz, Toms 50\u2013350 Hz, Snare 50\u2013450 Hz) und nur bei ausreichender Zuverl\xE4ssigkeit (YIN-Confidence) \xFCbernommen, um typische Oktavfehler herauszufiltern. Gemessen wird nur der kr\xE4ftige Teil direkt nach dem Anschlag \u2014 der leise Ausklang klingt physikalisch etwas tiefer aus und w\xFCrde den Wert sonst nach unten ziehen. \xDCber die letzten 5 g\xFCltigen Messungen wird der Median gebildet, sodass sich beim mehrfachen Anschlagen (z.B. einmal rund um die Trommel) ein stabiler Wert einpendelt. Trotzdem bleibt die Mikrofon-Hardware (Frequenzgang, Abstand, Raumger\xE4usche) der limitierende Faktor \u2014 ein externes Mikrofon n\xE4her am Fell liefert meist zuverl\xE4ssigere Werte.",
       modes: {
         maximum: { label: "Maximum (Unisono)", desc: "Beide Felle gleich \u2014 volles Sustain, offener Ton" },
         high: { label: "High", desc: "Leichtes Intervall \u2014 mehr Kontrolle, f\xFCr Live gut geeignet" },
@@ -177,7 +177,7 @@
       footer7Title: "Pro average:",
       footer7: "This option is based on our own analysis of over 90 real drum tunings from professional drummers, published at tune-bot.com/artists (as analyzed by us). Snare values (n=22): batter \xD71.47, interval \xD71.29. Tom values (n=60): batter \xD71.60, reso \xD71.92. Kick values (n=14): batter \xD71.62, reso \xD71.82. Obvious scraping duplicates were removed before averaging.",
       footer8Title: "Microphone measurement accuracy:",
-      footer8: "Results are limited to a plausible frequency range per drum type (kick 30\u2013160 Hz, toms 50\u2013350 Hz, snare 50\u2013450 Hz) and only accepted with sufficient reliability (YIN confidence), to filter out typical octave errors. Exactly one reading is captured per hit, shortly after the strike (not averaged over the ring-out, which can otherwise drift noticeably); a median is also taken over the last 5 hits to smooth out outliers. Even so, the built-in microphone hardware (frequency response, distance, room noise) remains the limiting factor \u2014 an external microphone closer to the head usually gives more reliable readings than the built-in laptop/phone mic from a distance.",
+      footer8: "Results are limited to a plausible frequency range per drum type (kick 30\u2013160 Hz, toms 50\u2013350 Hz, snare 50\u2013450 Hz) and only accepted with sufficient reliability (YIN confidence), to filter out typical octave errors. Only the loud portion right after the strike is measured \u2014 the quiet ring-out rings slightly flat and would otherwise pull the value down. A median is taken over the last 5 valid readings, so hitting several times (e.g. once around the drum) settles on a stable value. Even so, the microphone hardware (frequency response, distance, room noise) remains the limiting factor \u2014 an external microphone closer to the head usually gives more reliable readings.",
       modes: {
         maximum: { label: "Maximum (Unison)", desc: "Both heads equal \u2014 full sustain, open tone" },
         high: { label: "High", desc: "Slight interval \u2014 more control, good for live use" },
@@ -399,30 +399,22 @@
         };
         const startTime = performance.now();
         let gotAny = false;
-        let onsetActive = false;
-        let prevRms = 0;
         const loop = () => {
           analyser.getFloatTimeDomainData(buf);
           let rms = 0;
           for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
           rms = Math.sqrt(rms / buf.length);
-          if (!onsetActive && rms > 0.02 && rms - prevRms > 0.01 && rms > prevRms * 1.3) {
-            onsetActive = true;
-            setTimeout(() => {
-              analyser.getFloatTimeDomainData(buf);
-              const { freq, confidence } = detectPitchYIN(buf, sampleRate);
-              if (freq > minHz && freq < maxHz && confidence > 0.3) {
-                recentRef.current.push(freq);
-                if (recentRef.current.length > 5) recentRef.current.shift();
-                const sorted = [...recentRef.current].sort((a, b) => a - b);
-                const median = sorted[Math.floor(sorted.length / 2)];
-                setMeasured(median);
-                gotAny = true;
-              }
-              onsetActive = false;
-            }, 70);
+          if (rms > 0.04) {
+            const { freq, confidence } = detectPitchYIN(buf, sampleRate);
+            if (freq > minHz && freq < maxHz && confidence > 0.3) {
+              recentRef.current.push(freq);
+              if (recentRef.current.length > 5) recentRef.current.shift();
+              const sorted = [...recentRef.current].sort((a, b) => a - b);
+              const median = sorted[Math.floor(sorted.length / 2)];
+              setMeasured(median);
+              gotAny = true;
+            }
           }
-          prevRms = rms;
           if (performance.now() - startTime > 3e4) {
             stopListening();
             if (!gotAny) setStatus("error");
