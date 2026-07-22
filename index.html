@@ -77,6 +77,7 @@
       micModeLug: "Lug",
       micModeFund: "Grundton",
       micModeTitle: "Messgr\xF6\xDFe: Lug-Frequenz (niedrigster Oberton, zum Stimmen der Schrauben) oder Trommel-Grundton",
+      micGroupsLabel: "Gruppen:",
       footer1: "Formel nach Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3.",
       footer2Title: "Zum Tiefen-Einfluss:",
       footer2: "Es gibt daf\xFCr keine offizielle Tune-Bot-Formel \u2014 laut zugeh\xF6rigem Patent wird der reale Multiplikator pro Trommel kalibriert/gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Industriestandard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert.",
@@ -87,13 +88,13 @@
       footer4b: "gekoppelten",
       footer4c: "Klang der ganzen Trommel (Fundamentalton plus leise Fell-Partialt\xF6ne und Attack-Transient) \u2014 beides sind H\xF6reinsch\xE4tzungen zur Orientierung, kein realistischer Fell- oder Kesselklang.",
       footer5Title: "Kreuz-Stimmreihenfolge:",
-      footer5: "Die Zahlen im Lug-Kreis zeigen nicht die physische Position, sondern die empfohlene Reihenfolge beim Stimmen (immer zum gegen\xFCberliegenden bzw. \xFCbern\xE4chsten Lug springen, nie im Kreis herum). Formel: Position(Schritt) = \u230ASchritt/2\u230B + (Schritt mod 2) \xD7 \u230AN/2\u230B \u2014 funktioniert f\xFCr jede gerade Lug-Anzahl.",
+      footer5: "Die Zahlen im Lug-Kreis zeigen nicht die physische Position, sondern die empfohlene Reihenfolge beim Stimmen: immer zum gegen\xFCberliegenden Lug, dann eine Schraube weiter und wieder gegen\xFCber \u2014 so verteilt sich die Spannung gleichm\xE4\xDFig, statt im Kreis herumzuwandern.",
       footer6Title: "Mikrofon-Messung:",
-      footer6: 'Der "\u{1F3A4} Messen"-Button pro Trommel wertet jeden Anschlag per FFT-Spektralanalyse aus \u2014 nach der im Tune-Bot-Patent (US 8,502,060) beschriebenen Methode: Anschlag-Erkennung, Leistungsspektrum, Gruppierung der Spektral-Peaks. Umschaltbar zwischen Lug-Frequenz (niedrigster Oberton, f\xFCrs Stimmen der einzelnen Schrauben \u2014 nah am jeweiligen Lug anschlagen) und Grundton (Gesamtklang \u2014 mittig anschlagen). Der Browser fragt einmalig um Mikrofon-Erlaubnis. Snare mit ausgeh\xE4ngtem Teppich messen.',
+      footer6: 'Der "\u{1F3A4} Messen"-Button pro Trommel wertet jeden Anschlag per FFT-Spektralanalyse aus: Anschlag-Erkennung, Leistungsspektrum, Gruppierung der Spektral-Peaks. Umschaltbar zwischen Lug-Frequenz (niedrigster Oberton, f\xFCrs Stimmen der einzelnen Schrauben \u2014 nah am jeweiligen Lug anschlagen) und Grundton (Gesamtklang \u2014 mittig anschlagen). Der Browser fragt einmalig um Mikrofon-Erlaubnis. Snare mit ausgeh\xE4ngtem Teppich messen.',
       footer7Title: "Profi-Durchschnitt:",
       footer7: "Diese Option basiert auf einer eigenen Auswertung von \xFCber 90 realen Trommel-Tunings professioneller Drummer, ver\xF6ffentlicht auf tune-bot.com/artists (Stand: eigene Analyse). Snare-Werte (n=22): Schlagfell \xD71,47, Intervall \xD71,29. Tom-Werte (n=60): Schlagfell \xD71,60, Resofell \xD71,92. Bassdrum-Werte (n=14): Schlagfell \xD71,62, Resofell \xD71,82. Offensichtliche Scraping-Duplikate wurden vor der Mittelwertbildung entfernt.",
       footer8Title: "Genauigkeit der Mikrofon-Messung:",
-      footer8: "Nach jedem erkannten Anschlag wird das Frequenzspektrum analysiert: Alle Peaks \xFCber einer Schwelle (18 dB unter dem st\xE4rksten Peak) werden nach spektraler N\xE4he gruppiert. Der Grundton ist der st\xE4rkste Peak der niedrigsten Gruppe; die Lug-Frequenz ist der st\xE4rkste Peak der n\xE4chsth\xF6heren Gruppe (niedrigster Oberton des Fells). Parabel-Interpolation verfeinert die Aufl\xF6sung auf unter 1 Hz. Ergebnisse werden auf plausible Bereiche je Trommelart begrenzt (Bassdrum 30\u2013160 Hz, Toms 50\u2013350 Hz, Snare 50\u2013450 Hz). Ein externes Mikrofon n\xE4her am Fell liefert bei St\xF6rger\xE4uschen zuverl\xE4ssigere Werte.",
+      footer8: "Nach jedem erkannten Anschlag wird das Frequenzspektrum analysiert: Alle Peaks \xFCber einer Schwelle (18 dB unter dem st\xE4rksten Peak) werden nach spektraler N\xE4he gruppiert. Der Grundton ist der st\xE4rkste Peak der niedrigsten Gruppe; die Lug-Frequenz ist der st\xE4rkste Peak der n\xE4chsth\xF6heren Gruppe. Parabel-Interpolation verfeinert die Aufl\xF6sung auf unter 1 Hz. Ergebnisse werden auf plausible Bereiche je Trommelart begrenzt (Bassdrum 30\u2013160 Hz, Toms 50\u2013350 Hz, Snare 50\u2013450 Hz). Ein externes Mikrofon n\xE4her am Fell liefert bei St\xF6rger\xE4uschen zuverl\xE4ssigere Werte.",
       modes: {
         maximum: { label: "Maximum (Unisono)", desc: "Beide Felle gleich \u2014 volles Sustain, offener Ton" },
         high: { label: "High", desc: "Leichtes Intervall \u2014 mehr Kontrolle, f\xFCr Live gut geeignet" },
@@ -167,6 +168,7 @@
       micModeLug: "Lug",
       micModeFund: "Fundamental",
       micModeTitle: "Measured quantity: lug frequency (lowest overtone, for tuning individual rods) or overall drum fundamental",
+      micGroupsLabel: "Groups:",
       footer1: "Formula per the Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = fundamental \xD7 1.75 (both heads); High = \xD71.5 / \xD71.85; Medium = \xD71.4 / \xD72.0; Low = \xD71.2 / \xD72.3.",
       footer2Title: "On depth influence:",
       footer2: "There is no official Tune-Bot formula for this \u2014 per the underlying patent, the real multiplier per drum is calibrated/measured, not calculated. The shift shown here is therefore our own plausible approximation based on the depth-to-diameter ratio compared to a typical reference value per drum type \u2014 not a confirmed industry standard. Use it as a rough starting point, not an exact target.",
@@ -177,13 +179,13 @@
       footer4b: "coupled",
       footer4c: "sound of the whole drum (fundamental plus faint head partials and attack transient) \u2014 both are rough listening aids, not a realistic head or shell sound.",
       footer5Title: "Cross-tuning order:",
-      footer5: "The numbers in the lug circle show not the physical position, but the recommended tuning order (always jump to the opposite or next-but-one lug, never work around the circle). Formula: Position(step) = \u230Astep/2\u230B + (step mod 2) \xD7 \u230AN/2\u230B \u2014 works for any even lug count.",
+      footer5: "The numbers in the lug circle show not the physical position, but the recommended tuning order: always go to the opposite lug, then one rod further and opposite again \u2014 this spreads the tension evenly instead of working around the circle.",
       footer6Title: "Microphone measurement:",
-      footer6: 'The "\u{1F3A4} Measure" button per drum analyzes each strike via FFT spectral analysis \u2014 following the method described in the Tune-Bot patent (US 8,502,060): burst detection, power spectrum, grouping of spectral peaks. Switchable between lug frequency (lowest overtone, for tuning individual rods \u2014 strike close to the lug) and fundamental (overall tone \u2014 strike in the center). The browser asks for microphone permission once. Measure the snare with the wires disengaged.',
+      footer6: 'The "\u{1F3A4} Measure" button per drum analyzes each strike via FFT spectral analysis: burst detection, power spectrum, grouping of spectral peaks. Switchable between lug frequency (lowest overtone, for tuning individual rods \u2014 strike close to the lug) and fundamental (overall tone \u2014 strike in the center). The browser asks for microphone permission once. Measure the snare with the wires disengaged.',
       footer7Title: "Pro average:",
       footer7: "This option is based on our own analysis of over 90 real drum tunings from professional drummers, published at tune-bot.com/artists (as analyzed by us). Snare values (n=22): batter \xD71.47, interval \xD71.29. Tom values (n=60): batter \xD71.60, reso \xD71.92. Kick values (n=14): batter \xD71.62, reso \xD71.82. Obvious scraping duplicates were removed before averaging.",
       footer8Title: "Microphone measurement accuracy:",
-      footer8: "After each detected strike, the frequency spectrum is analyzed: all peaks above a threshold (18 dB below the strongest peak) are grouped by spectral proximity. The fundamental is the strongest peak of the lowest group; the lug frequency is the strongest peak of the next-higher group (lowest overtone of the head). Parabolic interpolation refines resolution to below 1 Hz. Results are limited to plausible ranges per drum type (kick 30\u2013160 Hz, toms 50\u2013350 Hz, snare 50\u2013450 Hz). An external microphone closer to the head gives more reliable readings in noisy rooms.",
+      footer8: "After each detected strike, the frequency spectrum is analyzed: all peaks above a threshold (18 dB below the strongest peak) are grouped by spectral proximity. The fundamental is the strongest peak of the lowest group; the lug frequency is the strongest peak of the next-higher group. Parabolic interpolation refines resolution to below 1 Hz. Results are limited to plausible ranges per drum type (kick 30\u2013160 Hz, toms 50\u2013350 Hz, snare 50\u2013450 Hz). An external microphone closer to the head gives more reliable readings in noisy rooms.",
       modes: {
         maximum: { label: "Maximum (Unison)", desc: "Both heads equal \u2014 full sustain, open tone" },
         high: { label: "High", desc: "Slight interval \u2014 more control, good for live use" },
@@ -308,7 +310,7 @@
         const denom = a - 2 * b + c;
         const delta = denom !== 0 ? 0.5 * (a - c) / denom : 0;
         peaks.push({ freq: (i + delta) * binHz, db: b });
-        if (peaks.length >= 16) break;
+        if (peaks.length >= 24) break;
       }
     }
     if (peaks.length === 0) return null;
@@ -323,9 +325,10 @@
     }
     subsets.push(current);
     const best = (arr) => arr.reduce((m, p) => p.db > m.db ? p : m);
-    const fundamental = best(subsets[0]).freq;
-    const lug = subsets.length > 1 ? best(subsets[1]).freq : fundamental;
-    return { fundamental, lug, subsetCount: subsets.length };
+    const groups = subsets.map((s) => best(s).freq);
+    const fundamental = groups[0];
+    const lug = groups.length > 1 ? groups[1] : groups[0];
+    return { fundamental, lug, groups };
   }
   const MIC_RANGE = {
     "Bass Drum": { min: 30, max: 160 },
@@ -343,7 +346,7 @@
       }
     });
   }
-  function MicMeasureButton({ targetHz, accent = "#c9a15a", deviceId = "", minHz = 20, maxHz = 1e3, labels = { stop: "Stoppen", measure: "Messen", title: "\xDCber Mikrofon messen", noTone: "kein Ton erkannt", tryLouder: "lauter/n\xE4her versuchen", modeLug: "Lug", modeFund: "Grundton", modeTitle: "" } }) {
+  function MicMeasureButton({ targetHz, accent = "#c9a15a", deviceId = "", minHz = 20, maxHz = 1e3, labels }) {
     const [status, setStatus] = useState("idle");
     const [result, setResult] = useState(null);
     const [measureMode, setMeasureMode] = useState("lug");
@@ -447,20 +450,21 @@
     const deltaPct = delta != null ? Math.abs(delta / targetHz) * 100 : null;
     const close = deltaPct != null && deltaPct < 2;
     const resultClass = targetHz != null ? close ? "text-[#7fa593]" : "text-[#c1666b]" : "text-[#e8dcc4]";
-    return /* @__PURE__ */ React.createElement("span", { className: "no-print inline-flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement(
+    const btnBase = "text-sm uppercase tracking-wide border-2 rounded-md h-11 px-5 transition-colors font-semibold flex items-center justify-center";
+    return /* @__PURE__ */ React.createElement("div", { className: "no-print flex flex-col gap-2" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement(
       "button",
       {
         onClick: handleClick,
         title: status === "listening" ? labels.stop : labels.title,
-        className: "text-sm uppercase tracking-wide border-2 rounded-md px-5 py-2.5 transition-colors font-semibold",
+        className: btnBase,
         style: status === "listening" ? { borderColor: accent, backgroundColor: accent, color: "#1a140d" } : { borderColor: accent, color: accent }
       },
       status === "listening" ? `\u{1F3A4} ${labels.stop}` : `\u{1F3A4} ${labels.measure}`
-    ), /* @__PURE__ */ React.createElement("span", { className: "inline-flex border rounded-sm overflow-hidden", title: labels.modeTitle, style: { borderColor: accent } }, /* @__PURE__ */ React.createElement(
+    ), /* @__PURE__ */ React.createElement("span", { className: "inline-flex h-11 border-2 rounded-md overflow-hidden", title: labels.modeTitle, style: { borderColor: accent } }, /* @__PURE__ */ React.createElement(
       "button",
       {
         onClick: () => setMeasureMode("lug"),
-        className: "text-[10px] uppercase tracking-wide px-2 py-1 transition-colors",
+        className: "text-sm uppercase tracking-wide px-4 transition-colors font-semibold",
         style: measureMode === "lug" ? { backgroundColor: accent, color: "#1a140d" } : { color: accent }
       },
       labels.modeLug
@@ -468,11 +472,11 @@
       "button",
       {
         onClick: () => setMeasureMode("fund"),
-        className: "text-[10px] uppercase tracking-wide px-2 py-1 transition-colors",
+        className: "text-sm uppercase tracking-wide px-4 transition-colors font-semibold",
         style: measureMode === "fund" ? { backgroundColor: accent, color: "#1a140d" } : { color: accent }
       },
       labels.modeFund
-    )), displayed != null && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: resultClass + " text-base", style: { fontFamily: "ui-monospace, monospace" } }, displayed.toFixed(1), " Hz", delta != null ? ` (${delta >= 0 ? "+" : ""}${delta.toFixed(1)})` : "", status === "listening" ? "\u2026" : ""), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, labels.noTone, errorMsg ? ` (${errorMsg})` : ` \u2014 ${labels.tryLouder}`));
+    )), displayed != null && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: resultClass + " text-base", style: { fontFamily: "ui-monospace, monospace" } }, displayed.toFixed(1), " Hz", delta != null ? ` (${delta >= 0 ? "+" : ""}${delta.toFixed(1)})` : "", status === "listening" ? "\u2026" : ""), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, labels.noTone, errorMsg ? ` (${errorMsg})` : ` \u2014 ${labels.tryLouder}`)), result && result.groups && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: "text-[10px] text-[#8a7a5f]", style: { fontFamily: "ui-monospace, monospace" } }, labels.micGroupsLabel, " ", result.groups.map((g) => g.toFixed(0)).join(" \xB7 "), " Hz"));
   }
   const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   function noteToHz(noteName, octave) {
@@ -564,11 +568,15 @@
   }
   let nextId = 5;
   function computeTuningOrder(N) {
-    const half = Math.floor(N / 2);
-    const order = new Array(N).fill(1);
-    for (let step = 0; step < N; step++) {
-      const idx = (Math.floor(step / 2) + step % 2 * half) % N;
-      order[idx] = step + 1;
+    const half = N / 2;
+    const order = new Array(N).fill(0);
+    const starts = [];
+    for (let s = 0; s < half; s += 2) starts.push(s);
+    for (let s = 1; s < half; s += 2) starts.push(s);
+    let seq = 1;
+    for (const s of starts) {
+      order[s] = seq++;
+      order[s + half] = seq++;
     }
     return order;
   }
@@ -920,14 +928,14 @@
           className: "no-print w-7 h-7 rounded-full border border-[#7fa593] text-[#7fa593] hover:bg-[#7fa593] hover:text-[#1a140d] transition-colors flex items-center justify-center text-xs"
         },
         "\u25B6"
-      )))), /* @__PURE__ */ React.createElement("div", { className: "pt-1" }, /* @__PURE__ */ React.createElement("p", { className: "text-[#a8977b] text-[10px] uppercase tracking-wide mb-1" }, t.measureLabel), /* @__PURE__ */ React.createElement(
+      )))), /* @__PURE__ */ React.createElement("div", { className: "pt-1" }, /* @__PURE__ */ React.createElement("p", { className: "text-[#a8977b] text-[10px] uppercase tracking-wide mb-2" }, t.measureLabel), /* @__PURE__ */ React.createElement(
         MicMeasureButton,
         {
           accent: "#c9a15a",
           deviceId: micDeviceId,
           minHz: (MIC_RANGE[d.type] || MIC_RANGE["Tom"]).min,
           maxHz: (MIC_RANGE[d.type] || MIC_RANGE["Tom"]).max,
-          labels: { stop: t.micStop, measure: t.micMeasure, title: t.micMeasureTitle, noTone: t.micNoTone, tryLouder: t.micTryLouder, modeLug: t.micModeLug, modeFund: t.micModeFund, modeTitle: t.micModeTitle }
+          labels: { stop: t.micStop, measure: t.micMeasure, title: t.micMeasureTitle, noTone: t.micNoTone, tryLouder: t.micTryLouder, modeLug: t.micModeLug, modeFund: t.micModeFund, modeTitle: t.micModeTitle, micGroupsLabel: t.micGroupsLabel }
         }
       ))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-2 justify-center" }, /* @__PURE__ */ React.createElement(LugRing, { lugs: d.lugs, topHz: top, idPrefix: d.id }), /* @__PURE__ */ React.createElement("p", { className: "text-[10px] text-[#8a7a5f] uppercase tracking-wide text-center max-w-[160px]" }, t.lugRingCaption))));
     }), /* @__PURE__ */ React.createElement(
