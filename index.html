@@ -95,7 +95,7 @@
       footer7Title: "Profi-Durchschnitt:",
       footer7: "Diese Option basiert auf einer eigenen Auswertung von \xFCber 90 realen Trommel-Tunings professioneller Drummer, ver\xF6ffentlicht auf tune-bot.com/artists (Stand: eigene Analyse). Snare-Werte (n=22): Schlagfell \xD71,47, Intervall \xD71,29. Tom-Werte (n=60): Schlagfell \xD71,60, Resofell \xD71,92. Bassdrum-Werte (n=14): Schlagfell \xD71,62, Resofell \xD71,82. Offensichtliche Scraping-Duplikate wurden vor der Mittelwertbildung entfernt.",
       footer8Title: "Filter-Funktion:",
-      footer8: "Im h\xF6heren Frequenzbereich (etwa ab 300 Hz) liegen die Partialt\xF6ne dichter beieinander und klingen k\xFCrzer aus \u2014 dort wird jede Messung ungenauer, auch bei Hardware-Stimmger\xE4ten. Daf\xFCr gibt es den Filter: Erst eine korrekte Messung machen, dann \"Filter\" dr\xFCcken. Dieser Wert wird zur Referenz, und ab dann werden nur noch Frequenzen im Bereich \xB120 % ber\xFCcksichtigt \u2014 Oktavfehler und tiefe St\xF6rpeaks fallen heraus. Bei gr\xF6\xDFeren Stimm\xE4nderungen einfach neu setzen; f\xFCr jede Trommel gilt der Filter getrennt. Beim Fellwechsel, wenn du von ganz unten hocharbeitest, l\xE4sst du ihn am besten aus. Die Gruppen-Liste zeigt weiterhin alle erkannten Rohwerte, auch die vom Filter verworfenen.",
+      footer8: "Nach oben hin wird jede Messung ungenauer \u2014 der \xDCbergang beginnt etwa ab 250\u2013300 Hz und wird ab 350 Hz deutlich. Zwei Gr\xFCnde: Hoch gestimmte Felle klingen k\xFCrzer aus und f\xFCllen das Analysefenster nicht mehr aus, und die Fell-Partialt\xF6ne r\xFCcken enger zusammen (die dritte und vierte Mode liegen nur rund 7 % auseinander). Die Peak-Gruppierung skaliert deshalb mit der Frequenz statt einen festen Abstand zu nutzen. Dar\xFCber hinaus hilft der Filter: Erst eine korrekte Messung machen, dann \"Filter\" dr\xFCcken. Dieser Wert wird zur Referenz, und ab dann werden nur noch Frequenzen im Bereich \xB120 % ber\xFCcksichtigt \u2014 Oktavfehler und tiefe St\xF6rpeaks fallen heraus. Bei gr\xF6\xDFeren Stimm\xE4nderungen einfach neu setzen; f\xFCr jede Trommel gilt der Filter getrennt. Beim Fellwechsel, wenn du von ganz unten hocharbeitest, l\xE4sst du ihn am besten aus. Die Gruppen-Liste zeigt weiterhin alle erkannten Rohwerte, auch die vom Filter verworfenen.",
       modes: {
         maximum: { label: "Maximum (Unisono)", desc: "Beide Felle gleich \u2014 volles Sustain, offener Ton" },
         high: { label: "High", desc: "Leichtes Intervall \u2014 mehr Kontrolle, f\xFCr Live gut geeignet" },
@@ -187,7 +187,7 @@
       footer7Title: "Pro average:",
       footer7: "This option is based on our own analysis of over 90 real drum tunings from professional drummers, published at tune-bot.com/artists (as analyzed by us). Snare values (n=22): batter \xD71.47, interval \xD71.29. Tom values (n=60): batter \xD71.60, reso \xD71.92. Kick values (n=14): batter \xD71.62, reso \xD71.82. Obvious scraping duplicates were removed before averaging.",
       footer8Title: "Filter function:",
-      footer8: "In the higher frequency range (roughly above 300 Hz) the partials sit closer together and decay faster \u2014 every measurement gets less accurate there, including on hardware tuners. That is what the filter is for: take one correct reading, then press \"Filter\". That value becomes the reference, and from then on only frequencies within \xB120 % are considered \u2014 octave errors and low stray peaks drop out. Re-set it after larger tuning changes; the filter applies per drum. While changing heads and working up from the very bottom, it is best left off. The group list still shows all detected raw values, including those rejected by the filter.",
+      footer8: "Measurements get less accurate towards the top \u2014 the transition starts around 250\u2013300 Hz and becomes clear above 350 Hz. Two reasons: high tunings decay faster and no longer fill the analysis window, and the head partials move closer together (the third and fourth modes sit only about 7 % apart). The peak grouping therefore scales with frequency instead of using a fixed spacing. Beyond that, the filter helps: take one correct reading, then press \"Filter\". That value becomes the reference, and from then on only frequencies within \xB120 % are considered \u2014 octave errors and low stray peaks drop out. Re-set it after larger tuning changes; the filter applies per drum. While changing heads and working up from the very bottom, it is best left off. The group list still shows all detected raw values, including those rejected by the filter.",
       modes: {
         maximum: { label: "Maximum (Unison)", desc: "Both heads equal \u2014 full sustain, open tone" },
         high: { label: "High", desc: "Slight interval \u2014 more control, good for live use" },
@@ -316,10 +316,13 @@
       }
     }
     if (peaks.length === 0) return null;
+    // Gruppierungsabstand skaliert mit der Frequenz (6 %, mindestens 8 Hz),
+    // weil die Fell-Partialt\xF6ne nach oben hin enger zusammenr\xFCcken.
+    const groupGap = (f) => Math.max(8, f * 0.06);
     const subsets = [];
     let current = [peaks[0]];
     for (let k = 1; k < peaks.length; k++) {
-      if (peaks[k].freq - peaks[k - 1].freq <= 15) current.push(peaks[k]);
+      if (peaks[k].freq - peaks[k - 1].freq <= groupGap(peaks[k - 1].freq)) current.push(peaks[k]);
       else {
         subsets.push(current);
         current = [peaks[k]];
