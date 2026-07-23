@@ -75,6 +75,10 @@
       micNoTone: "kein Ton erkannt",
       micTryLouder: "lauter/n\xE4her versuchen",
       micGroupsLabel: "Gruppen:",
+      micFilter: "Filter",
+      micFilterTitle: "Filter setzen: Der zuletzt gemessene Wert wird Referenz \u2014 danach werden nur noch Werte im Bereich \xB120 % ber\xFCcksichtigt. Nochmal klicken schaltet den Filter aus.",
+      micFilterActive: "Filter:",
+      micFilterNoMatch: "kein Wert im Filterband",
       footer1: "Formel nach Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3.",
       footer2Title: "Zum Tiefen-Einfluss:",
       footer2: "Es gibt daf\xFCr keine offizielle Tune-Bot-Formel \u2014 laut zugeh\xF6rigem Patent wird der reale Multiplikator pro Trommel kalibriert/gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Industriestandard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert.",
@@ -90,8 +94,8 @@
       footer6: 'Der "\u{1F3A4} Messen"-Button pro Trommel wertet jeden Anschlag per FFT-Spektralanalyse aus und sucht \xFCber mehrere Anschl\xE4ge den stabilsten wiederkehrenden Ton \u2014 einzelne Ausrei\xDFer (Raumreflexionen, kurze Obert\xF6ne) fallen so heraus. Schl\xE4gst du nah am Lug an, ist das die Lug-Frequenz; mittig der Trommel-Grundton. Mehrmals anschlagen, damit sich der Wert einpendelt; nach einer kurzen Pause startet die Erkennung frisch. Der Browser fragt einmalig um Mikrofon-Erlaubnis. Snare mit ausgeh\xE4ngtem Teppich messen.',
       footer7Title: "Profi-Durchschnitt:",
       footer7: "Diese Option basiert auf einer eigenen Auswertung von \xFCber 90 realen Trommel-Tunings professioneller Drummer, ver\xF6ffentlicht auf tune-bot.com/artists (Stand: eigene Analyse). Snare-Werte (n=22): Schlagfell \xD71,47, Intervall \xD71,29. Tom-Werte (n=60): Schlagfell \xD71,60, Resofell \xD71,92. Bassdrum-Werte (n=14): Schlagfell \xD71,62, Resofell \xD71,82. Offensichtliche Scraping-Duplikate wurden vor der Mittelwertbildung entfernt.",
-      footer8Title: "Genauigkeit der Mikrofon-Messung:",
-      footer8: "Nach jedem Anschlag werden die Spektral-Peaks \xFCber einer Schwelle (18 dB unter dem st\xE4rksten) ermittelt und gruppiert. \xDCber die letzten Anschl\xE4ge hinweg wird der Ton gew\xE4hlt, der am konstantesten wiederkehrt (Toleranz ca. 4 %) \u2014 das filtert springende St\xF6rpeaks heraus, die bei hohen Stimmungen h\xE4ufiger auftreten. Parabel-Interpolation verfeinert die Aufl\xF6sung auf unter 1 Hz. Ergebnisse werden auf plausible Bereiche je Trommelart begrenzt (Bassdrum 30\u2013160 Hz, Toms 50\u2013350 Hz, Snare 50\u2013450 Hz). Die Gruppen-Liste zeigt die Rohwerte des letzten Anschlags; der gew\xE4hlte Ton ist hervorgehoben.",
+      footer8Title: "Filter-Funktion:",
+      footer8: "Im h\xF6heren Frequenzbereich (etwa ab 300 Hz) liegen die Partialt\xF6ne dichter beieinander und klingen k\xFCrzer aus \u2014 dort wird jede Messung ungenauer, auch bei Hardware-Stimmger\xE4ten. Daf\xFCr gibt es den Filter: Erst eine korrekte Messung machen, dann \"Filter\" dr\xFCcken. Dieser Wert wird zur Referenz, und ab dann werden nur noch Frequenzen im Bereich \xB120 % ber\xFCcksichtigt \u2014 Oktavfehler und tiefe St\xF6rpeaks fallen heraus. Bei gr\xF6\xDFeren Stimm\xE4nderungen einfach neu setzen; f\xFCr jede Trommel gilt der Filter getrennt. Beim Fellwechsel, wenn du von ganz unten hocharbeitest, l\xE4sst du ihn am besten aus. Die Gruppen-Liste zeigt weiterhin alle erkannten Rohwerte, auch die vom Filter verworfenen.",
       modes: {
         maximum: { label: "Maximum (Unisono)", desc: "Beide Felle gleich \u2014 volles Sustain, offener Ton" },
         high: { label: "High", desc: "Leichtes Intervall \u2014 mehr Kontrolle, f\xFCr Live gut geeignet" },
@@ -163,6 +167,10 @@
       micNoTone: "no tone detected",
       micTryLouder: "try louder/closer",
       micGroupsLabel: "Groups:",
+      micFilter: "Filter",
+      micFilterTitle: "Set filter: the last measured value becomes the reference \u2014 from then on only values within \xB120 % are considered. Click again to switch the filter off.",
+      micFilterActive: "Filter:",
+      micFilterNoMatch: "no value inside filter band",
       footer1: "Formula per the Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = fundamental \xD7 1.75 (both heads); High = \xD71.5 / \xD71.85; Medium = \xD71.4 / \xD72.0; Low = \xD71.2 / \xD72.3.",
       footer2Title: "On depth influence:",
       footer2: "There is no official Tune-Bot formula for this \u2014 per the underlying patent, the real multiplier per drum is calibrated/measured, not calculated. The shift shown here is therefore our own plausible approximation based on the depth-to-diameter ratio compared to a typical reference value per drum type \u2014 not a confirmed industry standard. Use it as a rough starting point, not an exact target.",
@@ -178,8 +186,8 @@
       footer6: 'The "\u{1F3A4} Measure" button per drum analyzes each strike via FFT spectral analysis and finds the most stable recurring tone across several strikes \u2014 single outliers (room reflections, brief overtones) drop out. Strike close to the lug and it is the lug frequency; strike in the center and it is the drum fundamental. Hit several times so the value settles; after a short pause detection restarts. The browser asks for microphone permission once. Measure the snare with the wires disengaged.',
       footer7Title: "Pro average:",
       footer7: "This option is based on our own analysis of over 90 real drum tunings from professional drummers, published at tune-bot.com/artists (as analyzed by us). Snare values (n=22): batter \xD71.47, interval \xD71.29. Tom values (n=60): batter \xD71.60, reso \xD71.92. Kick values (n=14): batter \xD71.62, reso \xD71.82. Obvious scraping duplicates were removed before averaging.",
-      footer8Title: "Microphone measurement accuracy:",
-      footer8: "After each strike, the spectral peaks above a threshold (18 dB below the strongest) are found and grouped. Across recent strikes, the tone that recurs most consistently is chosen (tolerance about 4%) \u2014 this filters out jumping stray peaks that are more common at high tunings. Parabolic interpolation refines resolution to below 1 Hz. Results are limited to plausible ranges per drum type (kick 30\u2013160 Hz, toms 50\u2013350 Hz, snare 50\u2013450 Hz). The group list shows the raw values of the last strike; the chosen tone is highlighted.",
+      footer8Title: "Filter function:",
+      footer8: "In the higher frequency range (roughly above 300 Hz) the partials sit closer together and decay faster \u2014 every measurement gets less accurate there, including on hardware tuners. That is what the filter is for: take one correct reading, then press \"Filter\". That value becomes the reference, and from then on only frequencies within \xB120 % are considered \u2014 octave errors and low stray peaks drop out. Re-set it after larger tuning changes; the filter applies per drum. While changing heads and working up from the very bottom, it is best left off. The group list still shows all detected raw values, including those rejected by the filter.",
       modes: {
         maximum: { label: "Maximum (Unison)", desc: "Both heads equal \u2014 full sustain, open tone" },
         high: { label: "High", desc: "Slight interval \u2014 more control, good for live use" },
@@ -323,26 +331,31 @@
     return { groups };
   }
   // W\xE4hlt \xFCber die letzten Anschl\xE4ge den Ton, der am konstantesten wiederkehrt.
-  function pickStablePeak(history, tolPct = 0.04) {
+  // filterHz (optional): nur Kandidaten im Bereich \xB120 % um diesen Wert werden betrachtet.
+  function pickStablePeak(history, tolPct = 0.04, filterHz = null) {
+    const lo = filterHz ? filterHz * 0.8 : null;
+    const hi = filterHz ? filterHz * 1.2 : null;
+    const inBand = (f) => filterHz == null || (f >= lo && f <= hi);
     const all = [];
-    history.forEach((groups) => groups.forEach((f) => all.push(f)));
+    history.forEach((groups) => groups.forEach((f) => {
+      if (inBand(f)) all.push(f);
+    }));
     if (all.length === 0) return null;
     let bestFreq = null, bestScore = -1;
     for (const cand of all) {
       const tol = cand * tolPct;
-      // in wie vielen Anschl\xE4gen kommt ein Peak nahe cand vor?
       let hits = 0;
       const matched = [];
       history.forEach((groups) => {
         let found = null;
         for (const f of groups) {
+          if (!inBand(f)) continue;
           if (Math.abs(f - cand) <= tol) {
             if (found === null || Math.abs(f - cand) < Math.abs(found - cand)) found = f;
           }
         }
         if (found !== null) { hits++; matched.push(found); }
       });
-      // Score: Anzahl Anschl\xE4ge mit Treffer (Hauptkriterium), tiefere Frequenz als leichter Tie-Breaker
       const score = hits * 1000 - cand * 0.001;
       if (score > bestScore) {
         bestScore = score;
@@ -371,6 +384,7 @@
     const [status, setStatus] = useState("idle");
     const [result, setResult] = useState(null);
     const [errorMsg, setErrorMsg] = useState("");
+    const [filterHz, setFilterHz] = useState(null);
     const stopFnRef = useRef(null);
     const rafRef = useRef(null);
     const armedRef = useRef(true);
@@ -378,6 +392,7 @@
     const gotAnyRef = useRef(false);
     const historyRef = useRef([]);
     const lastHitRef = useRef(0);
+    const filterRef = useRef(null);
     const stopListening = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (pendingRef.current) {
@@ -386,6 +401,15 @@
       }
       if (stopFnRef.current) stopFnRef.current();
       setStatus((s) => s === "listening" ? "done" : s);
+    };
+    const toggleFilter = () => {
+      if (filterHz != null) {
+        setFilterHz(null);
+        filterRef.current = null;
+      } else if (result && result.value != null) {
+        setFilterHz(result.value);
+        filterRef.current = result.value;
+      }
     };
     const handleClick = async () => {
       if (status === "listening") {
@@ -446,9 +470,9 @@
             lastHitRef.current = now;
             historyRef.current.push(res.groups);
             if (historyRef.current.length > 4) historyRef.current.shift();
-            const stable = pickStablePeak(historyRef.current);
+            const stable = pickStablePeak(historyRef.current, 0.04, filterRef.current);
             setResult({ value: stable, groups: res.groups });
-            gotAnyRef.current = true;
+            if (stable != null) gotAnyRef.current = true;
           }
         };
         const loop = () => {
@@ -476,11 +500,13 @@
       }
     };
     const displayed = result ? result.value : null;
+    const noMatch = result != null && result.value == null && filterHz != null;
     const delta = displayed != null && targetHz != null ? displayed - targetHz : null;
     const deltaPct = delta != null ? Math.abs(delta / targetHz) * 100 : null;
     const close = deltaPct != null && deltaPct < 2;
     const resultClass = targetHz != null ? close ? "text-[#7fa593]" : "text-[#c1666b]" : "text-[#e8dcc4]";
     const btnBase = "text-sm uppercase tracking-wide border-2 rounded-md h-11 px-5 transition-colors font-semibold flex items-center justify-center";
+    const canFilter = filterHz != null || (result != null && result.value != null);
     const chosen = displayed;
     return /* @__PURE__ */ React.createElement("div", { className: "no-print flex flex-col gap-2" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement(
       "button",
@@ -491,10 +517,20 @@
         style: status === "listening" ? { borderColor: accent, backgroundColor: accent, color: "#1a140d" } : { borderColor: accent, color: accent }
       },
       status === "listening" ? `\u{1F3A4} ${labels.stop}` : `\u{1F3A4} ${labels.measure}`
-    ), displayed != null && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: resultClass + " text-lg", style: { fontFamily: "ui-monospace, monospace" } }, displayed.toFixed(1), " Hz", delta != null ? ` (${delta >= 0 ? "+" : ""}${delta.toFixed(1)})` : "", status === "listening" ? "\u2026" : ""), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, labels.noTone, errorMsg ? ` (${errorMsg})` : ` \u2014 ${labels.tryLouder}`)), result && result.groups && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: "text-[10px] text-[#8a7a5f]", style: { fontFamily: "ui-monospace, monospace" } }, labels.micGroupsLabel, " ", result.groups.map((g, i) => {
+    ), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: toggleFilter,
+        disabled: !canFilter,
+        title: labels.filterTitle,
+        className: btnBase,
+        style: filterHz != null ? { borderColor: accent, backgroundColor: accent, color: "#1a140d" } : { borderColor: canFilter ? accent : "#5c4a33", color: canFilter ? accent : "#5c4a33", cursor: canFilter ? "pointer" : "default" }
+      },
+      labels.filter
+    ), displayed != null && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", { className: resultClass + " text-lg", style: { fontFamily: "ui-monospace, monospace" } }, displayed.toFixed(1), " Hz", delta != null ? ` (${delta >= 0 ? "+" : ""}${delta.toFixed(1)})` : "", status === "listening" ? "\u2026" : ""), noMatch && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, labels.filterNoMatch), status === "error" && /* @__PURE__ */ React.createElement("span", { className: "text-[#c1666b] text-xs" }, labels.noTone, errorMsg ? ` (${errorMsg})` : ` \u2014 ${labels.tryLouder}`)), /* @__PURE__ */ React.createElement("div", { className: "flex gap-4 flex-wrap text-[10px] text-[#8a7a5f]", style: { fontFamily: "ui-monospace, monospace" } }, filterHz != null && /* @__PURE__ */ React.createElement("span", { className: "text-[#c9a15a]" }, labels.filterActive, " ", filterHz.toFixed(0), " Hz (", (filterHz * 0.8).toFixed(0), "\u2013", (filterHz * 1.2).toFixed(0), ")"), result && result.groups && (status === "listening" || status === "done") && /* @__PURE__ */ React.createElement("span", null, labels.micGroupsLabel, " ", result.groups.map((g, i) => {
       const isChosen = chosen != null && Math.abs(g - chosen) <= chosen * 0.04;
       return /* @__PURE__ */ React.createElement("span", { key: i, style: isChosen ? { color: "#c9a15a", fontWeight: "bold" } : {} }, g.toFixed(0), i < result.groups.length - 1 ? " \xB7 " : "");
-    }), " Hz"));
+    }), " Hz")));
   }
   const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   function noteToHz(noteName, octave) {
@@ -953,7 +989,7 @@
           deviceId: micDeviceId,
           minHz: (MIC_RANGE[d.type] || MIC_RANGE["Tom"]).min,
           maxHz: (MIC_RANGE[d.type] || MIC_RANGE["Tom"]).max,
-          labels: { stop: t.micStop, measure: t.micMeasure, title: t.micMeasureTitle, noTone: t.micNoTone, tryLouder: t.micTryLouder, micGroupsLabel: t.micGroupsLabel }
+          labels: { stop: t.micStop, measure: t.micMeasure, title: t.micMeasureTitle, noTone: t.micNoTone, tryLouder: t.micTryLouder, micGroupsLabel: t.micGroupsLabel, filter: t.micFilter, filterTitle: t.micFilterTitle, filterActive: t.micFilterActive, filterNoMatch: t.micFilterNoMatch }
         }
       ))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-2 justify-center" }, /* @__PURE__ */ React.createElement(LugRing, { lugs: d.lugs, topHz: top, idPrefix: d.id }), /* @__PURE__ */ React.createElement("p", { className: "text-[10px] text-[#8a7a5f] uppercase tracking-wide text-center max-w-[160px]" }, t.lugRingCaption))));
     }), /* @__PURE__ */ React.createElement(
