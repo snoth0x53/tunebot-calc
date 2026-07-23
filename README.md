@@ -15,21 +15,19 @@ Build-Step, kein Backend – läuft komplett im Browser.
   Fundamentalfrequenz) und damit die Schätzung durch echte Messwerte ersetzen
 - **Kreuz-Stimmreihenfolge:** Der Lug-Kreis zeigt die empfohlene Stimm-Reihenfolge –
   immer zum gegenüberliegenden Lug, dann eine Schraube weiter und wieder gegenüber,
-  sodass sich die Spannung gleichmäßig verteilt statt im Kreis herumzuwandern.
-  Passt sich automatisch an jede gerade Lug-Anzahl an (6, 8, 10, 12 …)
+  sodass sich die Spannung gleichmäßig verteilt
 - **Snare-spezifische Formel:** eigener Rechenweg für Snares (Intervall-basiert:
   Quinte/Quarte/Terz/Unisono), getrennt von der Resonance-Modus-Logik für Toms/Bassdrum
 - **Profi-Durchschnitt:** zusätzlicher Modus je Trommelart, basierend auf einer eigenen
   Auswertung von über 90 realen Artist-Tunings (siehe Abschnitt weiter unten)
 - **Mikrofon-Messung:** ein "🎤 Messen"-Button pro Trommel misst den tatsächlichen
-  Ist-Wert per FFT-Spektralanalyse (läuft, bis manuell gestoppt; mehrfach anschlagen
-  möglich) – Vergleich mit den Zielwerten erfolgt visuell
+  Ist-Wert per FFT-Spektralanalyse, mit zuschaltbarem Filter für den kritischen
+  Hochtonbereich
 - Ton-Vorschau: kurze synthetische Klangbeispiele für Schlagfell, Resonanzfell
   und den resultierenden Trommel-Grundton
 - **Set-Name:** ganzes Kit benennen (z. B. "Rogers XP8"), um mehrere Drumsets
   auseinanderzuhalten
-- **Drucken / Als PDF speichern:** aktuelle Einstellungen aller Trommeln als
-  sauberes Dokument sichern oder ausdrucken
+- **Drucken / Als PDF speichern:** aktuelle Einstellungen aller Trommeln sichern
 
 ## Lug-für-Lug stimmen mit der Mikrofon-Messung
 
@@ -45,6 +43,23 @@ Anschläge den stabilsten wiederkehrenden Ton und blendet einzelne Ausreißer
 (Raumreflexionen, kurze Obertöne) aus. Nach einer kurzen Pause startet die Erkennung
 frisch, sodass du beim Wechsel zum nächsten Lug einfach weitermachen kannst. Die Snare
 am besten mit ausgehängtem Teppich messen, damit das Rasseln nicht ins Signal kommt.
+
+### Filter für den Hochtonbereich
+
+Nach oben hin wird jede Messung ungenauer – der Übergang beginnt etwa ab 250–300 Hz
+und wird ab 350 Hz deutlich. Zwei Gründe: Hoch gestimmte Felle klingen kürzer aus und
+füllen das Analysefenster nicht mehr aus, und die Fell-Partialtöne rücken enger
+zusammen (die dritte und vierte Mode liegen nur rund 7 % auseinander). Dasselbe
+Problem betrifft auch Hardware-Stimmgeräte.
+
+Dafür gibt es den Filter: Erst eine korrekte Messung machen, dann **Filter** drücken.
+Dieser Wert wird zur Referenz, und ab dann werden nur noch Frequenzen im Bereich
+±20 % berücksichtigt – Oktavfehler und tiefe Störpeaks fallen heraus. Bei größeren
+Stimmänderungen einfach neu setzen; für jede Trommel gilt der Filter getrennt. Beim
+Fellwechsel, wenn du von ganz unten hocharbeitest, lässt du ihn am besten aus.
+
+Die Gruppen-Liste unter dem Messwert zeigt weiterhin alle erkannten Rohwerte, auch
+die vom Filter verworfenen – so siehst du, wenn der Filter etwas Echtes ausblendet.
 
 ## Grundton messen und kalibrieren
 
@@ -69,9 +84,14 @@ Diese gemessene Fundamentalfrequenz zusammen mit der eingestellten Lug-Frequenz 
 dein individueller Koeffizient berechnet, der die generische Formel für genau diese
 Trommel und dieses Fell ersetzt – genauer als die Standardwerte.
 
+Warum Unisono? Der Koeffizient ist das Verhältnis `a = Lug ÷ Fundamental`. Sind beide
+Felle unterschiedlich gestimmt, gibt es zwei verschiedene Lug-Frequenzen und das
+Verhältnis wäre nicht eindeutig. Im Unisono-Zustand gibt es genau eine.
+
 ## Formel-Grundlage
 
-Basiert auf dem [Overtone Labs Tune-Bot Tuning Guide](https://tune-bot.com/tunebottuningguide.pdf)
+Die Multiplikatoren stammen aus dem
+[Overtone Labs Tune-Bot Tuning Guide](https://tune-bot.com/tunebottuningguide.pdf)
 (2012):
 
 - **Maximum Resonance** (Unisono): Lug-Frequenz beider Felle = Grundton × 1,75
@@ -79,7 +99,7 @@ Basiert auf dem [Overtone Labs Tune-Bot Tuning Guide](https://tune-bot.com/tuneb
 - **Medium Resonance:** × 2,0 / × 1,4
 - **Low Resonance:** × 2,3 / × 1,2
 
-Für **Snares** gilt ein eigener, im Guide separat beschriebener Ansatz (nicht die
+Für **Snares** gilt ein eigener, dort separat beschriebener Ansatz (nicht die
 Resonance-Modi oben): Schlagfell ≈ Grundton × 1,4, Resofell = Schlagfell ×
 musikalisches Intervall (Standard: Quinte ×1,5).
 
@@ -89,17 +109,16 @@ Für maximale Genauigkeit empfiehlt sich die Kalibrierfunktion mit echten Messwe
 
 ## Profi-Durchschnitt: eigene Analyse realer Artist-Tunings
 
-Zusätzlich zu den PDF-Formeln enthält das Tool einen Modus **"Profi-Durchschnitt"**,
-der auf einer eigenen Auswertung von über 90 auf
-[tune-bot.com/artists](https://tune-bot.com/artists/) veröffentlichten Tunings
-professioneller Drummer basiert. Kernergebnisse:
+Zusätzlich enthält das Tool einen Modus **"Profi-Durchschnitt"**, der auf einer eigenen
+Auswertung von über 90 auf [tune-bot.com/artists](https://tune-bot.com/artists/)
+veröffentlichten Tunings professioneller Drummer basiert. Kernergebnisse:
 
-- **Snare (n=22):** Der PDF-Standard (Perfekte Quinte, Verhältnis 1,5) liegt über
+- **Snare (n=22):** Der Standard (Perfekte Quinte, Verhältnis 1,5) liegt über
   dem realen Durchschnitt (≈1,29) – die meisten Profis stimmen enger, näher an
   Terz/Quarte.
 - **Tom (n=60):** Der "High"-Modus passt schon gut zur Praxis (berechnetes
   Verhältnis 1,233 vs. beobachtet 1,20).
-- **Bassdrum (n=14):** Das PDF-Beispiel setzt das Schlagfell exakt auf den
+- **Bassdrum (n=14):** Das Guide-Beispiel setzt das Schlagfell exakt auf den
   Grundton (Verhältnis 1,0) – real liegt der Durchschnitt bei ≈1,62, spürbar
   straffer gestimmt.
 
@@ -127,24 +146,29 @@ zusätzlich ein HTTPS-Tunnel nötig (z. B. `cloudflared tunnel --url http://loca
 
 ## Genauigkeit der Mikrofon-Messung
 
-Nach jedem Anschlag wird das Frequenzspektrum per FFT analysiert: Alle Peaks über
-einer Schwelle (18 dB unter dem stärksten) werden ermittelt und nach spektraler Nähe
-gruppiert. Über mehrere Anschläge hinweg wählt das Tool den Ton, der am konstantesten
-wiederkehrt (Toleranz ca. 4 %). Das filtert springende Störpeaks heraus, die bei
-hohen Stimmungen häufiger auftreten. Parabel-Interpolation verfeinert die Auflösung
-auf unter 1 Hz.
+Nach jedem Anschlag wird das Frequenzspektrum per FFT analysiert (Fenstergröße 32768):
+Alle Peaks über einer Schwelle (18 dB unter dem stärksten) werden ermittelt und nach
+spektraler Nähe gruppiert. Der Gruppierungsabstand skaliert mit der Frequenz (6 %,
+mindestens 8 Hz), weil die Partialtöne nach oben hin enger zusammenrücken. Über
+mehrere Anschläge hinweg wählt das Tool den Ton, der am konstantesten wiederkehrt
+(Toleranz ca. 4 %). Das filtert springende Störpeaks heraus. Parabel-Interpolation
+verfeinert die Auflösung auf unter 1 Hz.
 
 Zusätzliche Maßnahmen:
 
 - **Plausible Frequenzbereiche je Trommelart:** Bassdrum 30–160 Hz, Toms 50–350 Hz,
-  Snare 50–450 Hz – filtert unrealistische Werte automatisch heraus
+  Snare 50–450 Hz
 - **Neustart nach Pause:** Bleibt eine kurze Zeit ein Anschlag aus, beginnt die
   Erkennung frisch – praktisch beim Wechsel von Lug zu Lug
+- **Filter** (siehe oben) für den kritischen Hochtonbereich
+
+Ein Vergleich gegen ein Hardware-Stimmgerät ergab im Normalbereich sehr ähnliche
+Werte; oberhalb von etwa 300 Hz werden beide ungenauer.
 
 Die Mikrofon-Hardware bleibt der limitierende Faktor: Frequenzgang, Abstand zum Fell
 und Raumgeräusche wirken sich stärker aus als jede Software-Optimierung. Ein externes
 Mikrofon näher am Fell liefert zuverlässigere Werte als das eingebaute Laptop-/Handy-
-Mikrofon aus der Distanz.
+Mikrofon aus größerer Distanz.
 
 ## Technik
 
