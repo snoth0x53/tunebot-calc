@@ -20,8 +20,8 @@
   const { useState, useMemo, useRef } = React;
   const T = {
     de: {
-      eyebrow: "Overtone Labs Formel",
-      subtitle: "Grundton w\xE4hlen, Resonance-Modus einstellen \u2014 die Ziel-Frequenz f\xFCr jeden Lug wird nach der offiziellen Tune-Bot-Formel berechnet.",
+      eyebrow: "Fell-Stimmrechner",
+      subtitle: "Grundton w\xE4hlen, Resonance-Modus einstellen \u2014 daraus wird die Ziel-Frequenz f\xFCr jeden Lug berechnet.",
       setLabel: "Set:",
       setPlaceholder: "z.B. Rogers XP8, Zweitset...",
       printedOn: "Ausgedruckt am",
@@ -47,7 +47,7 @@
       shiftMatches: "(entspricht Referenz)",
       calibrateToggle: "Kalibrieren",
       activeSuffix: "(aktiv)",
-      calibrateInstructions: "Stimme beide Felle unisono auf einen beliebigen Lug-Wert, schlage die Trommel mittig an (auf St\xE4nder) und miss die reale Fundamentalfrequenz mit dem Tunebot. Trag beide Werte ein \u2014 daraus wird dein echter Koeffizient berechnet und ersetzt die Sch\xE4tzung oben.",
+      calibrateInstructions: "Stimme beide Felle unisono auf einen beliebigen Lug-Wert, schlage die Trommel mittig an (auf St\xE4nder) und miss die reale Fundamentalfrequenz \u2014 mit der Mikrofon-Messung unten oder einem Stimmger\xE4t. Trag beide Werte ein \u2014 daraus wird dein echter Koeffizient berechnet und ersetzt die Sch\xE4tzung oben.",
       calibLugLabel: "Lug-Frequenz (unisono)",
       calibFundLabel: "Gemessene Fundamentalfreq.",
       apply: "\xDCbernehmen",
@@ -57,10 +57,10 @@
       higherHeadLabel: "H\xF6heres Fell",
       resoLower: "Resonanzfell (unten)",
       battTop: "Schlagfell (oben)",
-      snareDescDefault: "Laut PDF-Snare-Abschnitt: Resofell h\xF6her als Schlagfell, Standard Quinte (x1,5) \u2014 best\xE4tigt gegen echte Tune-Bot-Ger\xE4tewerte.",
+      snareDescDefault: "Resofell h\xF6her als Schlagfell, Standard Quinte (\xD71,5) \u2014 gegen reale Messwerte abgeglichen.",
       snareDescPro: "Empirischer Durchschnitt aus 22 realen Profi-Snare-Tunings (tune-bot.com/artists).",
       modeDescPro: "Empirischer Durchschnitt aus realen Artist-Tunings (tune-bot.com/artists).",
-      overLimitWarning: "\u26A0 Resofell \xFCber 400 Hz \u2014 laut PDF \xDCberdehnungsgefahr, evtl. kleineres Intervall w\xE4hlen.",
+      overLimitWarning: "\u26A0 Resofell \xFCber 400 Hz \u2014 \xDCberdehnungsgefahr, evtl. kleineres Intervall w\xE4hlen.",
       fundamentalLabel: "Grundton (Trommelklang)",
       battLabel: "Schlagfell (Lug)",
       resoLabel: "Resofell (Lug)",
@@ -79,9 +79,9 @@
       micFilterTitle: "Filter setzen: Der zuletzt gemessene Wert wird Referenz \u2014 danach werden nur noch Werte im Bereich \xB120 % ber\xFCcksichtigt. Nochmal klicken schaltet den Filter aus.",
       micFilterActive: "Filter:",
       micFilterNoMatch: "kein Wert im Filterband",
-      footer1: "Formel nach Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3.",
+      footer1: "Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3.",
       footer2Title: "Zum Tiefen-Einfluss:",
-      footer2: "Es gibt daf\xFCr keine offizielle Tune-Bot-Formel \u2014 laut zugeh\xF6rigem Patent wird der reale Multiplikator pro Trommel kalibriert/gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Industriestandard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert.",
+      footer2: "Daf\xFCr gibt es keine etablierte Formel \u2014 der reale Multiplikator wird pro Trommel kalibriert bzw. gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Standard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert.",
       footer3Title: "Kalibrieren:",
       footer3: "Tr\xE4gst du bei einer Trommel eine gemessene Lug- und Fundamentalfrequenz ein, wird daraus dein realer Koeffizient (a = Lug \xF7 Fundamental) berechnet. Dieser ersetzt dann die Tiefen-N\xE4herung f\xFCr genau diese Trommel \u2014 deutlich pr\xE4ziser, weil Kesselmaterial, Felltyp und Bauart darin bereits stecken.",
       footer4Title: "Zum Ton-Preview:",
@@ -93,7 +93,7 @@
       footer6Title: "Mikrofon-Messung:",
       footer6: 'Der "\u{1F3A4} Messen"-Button pro Trommel wertet jeden Anschlag per FFT-Spektralanalyse aus und sucht \xFCber mehrere Anschl\xE4ge den stabilsten wiederkehrenden Ton \u2014 einzelne Ausrei\xDFer (Raumreflexionen, kurze Obert\xF6ne) fallen so heraus. Schl\xE4gst du nah am Lug an, ist das die Lug-Frequenz; mittig der Trommel-Grundton. Mehrmals anschlagen, damit sich der Wert einpendelt; nach einer kurzen Pause startet die Erkennung frisch. Der Browser fragt einmalig um Mikrofon-Erlaubnis. Snare mit ausgeh\xE4ngtem Teppich messen.',
       footer7Title: "Profi-Durchschnitt:",
-      footer7: "Diese Option basiert auf einer eigenen Auswertung von \xFCber 90 realen Trommel-Tunings professioneller Drummer, ver\xF6ffentlicht auf tune-bot.com/artists (Stand: eigene Analyse). Snare-Werte (n=22): Schlagfell \xD71,47, Intervall \xD71,29. Tom-Werte (n=60): Schlagfell \xD71,60, Resofell \xD71,92. Bassdrum-Werte (n=14): Schlagfell \xD71,62, Resofell \xD71,82. Offensichtliche Scraping-Duplikate wurden vor der Mittelwertbildung entfernt.",
+      footer7: "Diese Option basiert auf einer eigenen Auswertung von \xFCber 90 realen Trommel-Tunings professioneller Drummer, ver\xF6ffentlicht auf tune-bot.com/artists (Stand: eigene Analyse). Snare-Werte (n=22): Schlagfell \xD71,47, Intervall \xD71,29. Tom-Werte (n=60): Schlagfell \xD71,60, Resofell \xD71,92. Bassdrum-Werte (n=14): Schlagfell \xD71,62, Resofell \xD71,82. Offensichtliche Duplikate wurden vor der Mittelwertbildung entfernt.",
       footer8Title: "Filter-Funktion:",
       footer8: "Nach oben hin wird jede Messung ungenauer \u2014 der \xDCbergang beginnt etwa ab 250\u2013300 Hz und wird ab 350 Hz deutlich. Zwei Gr\xFCnde: Hoch gestimmte Felle klingen k\xFCrzer aus und f\xFCllen das Analysefenster nicht mehr aus, und die Fell-Partialt\xF6ne r\xFCcken enger zusammen (die dritte und vierte Mode liegen nur rund 7 % auseinander). Die Peak-Gruppierung skaliert deshalb mit der Frequenz statt einen festen Abstand zu nutzen. Dar\xFCber hinaus hilft der Filter: Erst eine korrekte Messung machen, dann \"Filter\" dr\xFCcken. Dieser Wert wird zur Referenz, und ab dann werden nur noch Frequenzen im Bereich \xB120 % ber\xFCcksichtigt \u2014 Oktavfehler und tiefe St\xF6rpeaks fallen heraus. Bei gr\xF6\xDFeren Stimm\xE4nderungen einfach neu setzen; f\xFCr jede Trommel gilt der Filter getrennt. Beim Fellwechsel, wenn du von ganz unten hocharbeitest, l\xE4sst du ihn am besten aus. Die Gruppen-Liste zeigt weiterhin alle erkannten Rohwerte, auch die vom Filter verworfenen.",
       modes: {
@@ -104,7 +104,7 @@
         pro: { label: "Profi-Durchschnitt (empirisch)", desc: "Aus 60+ realen Artist-Tunings (tune-bot.com/artists) berechneter Durchschnitt" }
       },
       snareIntervals: {
-        fifth: { label: "Perfekte Quinte (PDF-Standard)" },
+        fifth: { label: "Perfekte Quinte" },
         fourth: { label: "Perfekte Quarte" },
         third: { label: "Gro\xDFe Terz" },
         unison: { label: "Unisono (Maximum Resonance)" },
@@ -112,8 +112,8 @@
       }
     },
     en: {
-      eyebrow: "Overtone Labs Formula",
-      subtitle: "Choose a fundamental note and resonance mode \u2014 the target frequency for every lug is calculated using the official Tune-Bot formula.",
+      eyebrow: "Drumhead Tuning Calculator",
+      subtitle: "Choose a fundamental note and resonance mode \u2014 the target frequency for every lug is calculated from it.",
       setLabel: "Kit:",
       setPlaceholder: "e.g. Rogers XP8, second kit...",
       printedOn: "Printed on",
@@ -139,7 +139,7 @@
       shiftMatches: "(matches reference)",
       calibrateToggle: "Calibrate",
       activeSuffix: "(active)",
-      calibrateInstructions: "Tune both heads to the same lug pitch (unison), strike the drum in the center (on a stand) and measure the real fundamental frequency with a Tune-Bot or the mic measurement below. Enter both values \u2014 this calculates your real coefficient and replaces the estimate above.",
+      calibrateInstructions: "Tune both heads to the same lug pitch (unison), strike the drum in the center (on a stand) and measure the real fundamental frequency \u2014 with the mic measurement below or a tuner. Enter both values \u2014 this calculates your real coefficient and replaces the estimate above.",
       calibLugLabel: "Lug frequency (unison)",
       calibFundLabel: "Measured fundamental freq.",
       apply: "Apply",
@@ -149,10 +149,10 @@
       higherHeadLabel: "Higher head",
       resoLower: "Resonant head (bottom)",
       battTop: "Batter head (top)",
-      snareDescDefault: "Per the PDF snare section: resonant head higher than batter, default fifth (x1.5) \u2014 confirmed against real Tune-Bot device readings.",
+      snareDescDefault: "Resonant head higher than batter, default fifth (\xD71.5) \u2014 checked against real measurements.",
       snareDescPro: "Empirical average from 22 real pro snare tunings (tune-bot.com/artists).",
       modeDescPro: "Empirical average from real artist tunings (tune-bot.com/artists).",
-      overLimitWarning: "\u26A0 Resonant head above 400 Hz \u2014 per the PDF, risk of overstretching; consider a smaller interval.",
+      overLimitWarning: "\u26A0 Resonant head above 400 Hz \u2014 risk of overstretching; consider a smaller interval.",
       fundamentalLabel: "Fundamental (drum tone)",
       battLabel: "Batter head (lug)",
       resoLabel: "Reso head (lug)",
@@ -171,9 +171,9 @@
       micFilterTitle: "Set filter: the last measured value becomes the reference \u2014 from then on only values within \xB120 % are considered. Click again to switch the filter off.",
       micFilterActive: "Filter:",
       micFilterNoMatch: "no value inside filter band",
-      footer1: "Formula per the Overtone Labs Tune-Bot Tuning Guide (2012): Maximum Resonance = fundamental \xD7 1.75 (both heads); High = \xD71.5 / \xD71.85; Medium = \xD71.4 / \xD72.0; Low = \xD71.2 / \xD72.3.",
+      footer1: "Maximum Resonance = fundamental \xD7 1.75 (both heads); High = \xD71.5 / \xD71.85; Medium = \xD71.4 / \xD72.0; Low = \xD71.2 / \xD72.3.",
       footer2Title: "On depth influence:",
-      footer2: "There is no official Tune-Bot formula for this \u2014 per the underlying patent, the real multiplier per drum is calibrated/measured, not calculated. The shift shown here is therefore our own plausible approximation based on the depth-to-diameter ratio compared to a typical reference value per drum type \u2014 not a confirmed industry standard. Use it as a rough starting point, not an exact target.",
+      footer2: "There is no established formula for this \u2014 the real multiplier is calibrated or measured per drum, not calculated. The shift shown here is therefore our own plausible approximation based on the depth-to-diameter ratio compared to a typical reference value per drum type \u2014 not a confirmed standard. Use it as a rough starting point, not an exact target.",
       footer3Title: "Calibrating:",
       footer3: "If you enter a measured lug and fundamental frequency for a drum, your real coefficient (a = lug \xF7 fundamental) is calculated from it. This replaces the depth approximation for exactly this drum \u2014 noticeably more precise, since shell material, head type, and build are already baked in.",
       footer4Title: "On the tone preview:",
@@ -185,7 +185,7 @@
       footer6Title: "Microphone measurement:",
       footer6: 'The "\u{1F3A4} Measure" button per drum analyzes each strike via FFT spectral analysis and finds the most stable recurring tone across several strikes \u2014 single outliers (room reflections, brief overtones) drop out. Strike close to the lug and it is the lug frequency; strike in the center and it is the drum fundamental. Hit several times so the value settles; after a short pause detection restarts. The browser asks for microphone permission once. Measure the snare with the wires disengaged.',
       footer7Title: "Pro average:",
-      footer7: "This option is based on our own analysis of over 90 real drum tunings from professional drummers, published at tune-bot.com/artists (as analyzed by us). Snare values (n=22): batter \xD71.47, interval \xD71.29. Tom values (n=60): batter \xD71.60, reso \xD71.92. Kick values (n=14): batter \xD71.62, reso \xD71.82. Obvious scraping duplicates were removed before averaging.",
+      footer7: "This option is based on our own analysis of over 90 real drum tunings from professional drummers, published at tune-bot.com/artists (as analyzed by us). Snare values (n=22): batter \xD71.47, interval \xD71.29. Tom values (n=60): batter \xD71.60, reso \xD71.92. Kick values (n=14): batter \xD71.62, reso \xD71.82. Obvious duplicates were removed before averaging.",
       footer8Title: "Filter function:",
       footer8: "Measurements get less accurate towards the top \u2014 the transition starts around 250\u2013300 Hz and becomes clear above 350 Hz. Two reasons: high tunings decay faster and no longer fill the analysis window, and the head partials move closer together (the third and fourth modes sit only about 7 % apart). The peak grouping therefore scales with frequency instead of using a fixed spacing. Beyond that, the filter helps: take one correct reading, then press \"Filter\". That value becomes the reference, and from then on only frequencies within \xB120 % are considered \u2014 octave errors and low stray peaks drop out. Re-set it after larger tuning changes; the filter applies per drum. While changing heads and working up from the very bottom, it is best left off. The group list still shows all detected raw values, including those rejected by the filter.",
       modes: {
@@ -196,7 +196,7 @@
         pro: { label: "Pro average (empirical)", desc: "Average calculated from 60+ real artist tunings (tune-bot.com/artists)" }
       },
       snareIntervals: {
-        fifth: { label: "Perfect fifth (PDF default)" },
+        fifth: { label: "Perfect fifth" },
         fourth: { label: "Perfect fourth" },
         third: { label: "Major third" },
         unison: { label: "Unison (Maximum Resonance)" },
@@ -577,7 +577,7 @@
   }
   const SNARE_TOP_BASE = 1.4;
   const SNARE_INTERVALS = {
-    fifth: { label: "Perfekte Quinte (PDF-Standard)", ratio: 1.5, topBase: null },
+    fifth: { label: "Perfekte Quinte", ratio: 1.5, topBase: null },
     fourth: { label: "Perfekte Quarte", ratio: 1.333, topBase: null },
     third: { label: "Gro\xDFe Terz", ratio: 1.26, topBase: null },
     unison: { label: "Unisono (Maximum Resonance)", ratio: 1, topBase: null },
