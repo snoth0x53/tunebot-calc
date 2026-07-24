@@ -79,6 +79,8 @@
       micFilterTitle: "Filter setzen: Der zuletzt gemessene Wert wird Referenz \u2014 danach werden nur noch Werte im Bereich \xB120 % ber\xFCcksichtigt. Nochmal klicken schaltet den Filter aus.",
       micFilterActive: "Filter:",
       micFilterNoMatch: "kein Wert im Filterband",
+      micTestHint: "Zum Pr\xFCfen des Mikrofon-Setups gibt es ein separates Diagnose-Werkzeug:",
+      micTestLink: "Mikrofon-Test",
       footer1: "Maximum Resonance = Grundton \xD7 1,75 (beide Felle); High = \xD71,5 / \xD71,85; Medium = \xD71,4 / \xD72,0; Low = \xD71,2 / \xD72,3.",
       footer2Title: "Zum Tiefen-Einfluss:",
       footer2: "Daf\xFCr gibt es keine etablierte Formel \u2014 der reale Multiplikator wird pro Trommel kalibriert bzw. gemessen, nicht berechnet. Die hier gezeigte Verschiebung ist daher eine eigene, plausible N\xE4herung basierend auf dem Verh\xE4ltnis Tiefe/Durchmesser im Vergleich zu einem typischen Referenzwert je Trommelart \u2014 kein best\xE4tigter Standard. Nutze sie als groben Startpunkt, nicht als exakten Zielwert.",
@@ -171,6 +173,8 @@
       micFilterTitle: "Set filter: the last measured value becomes the reference \u2014 from then on only values within \xB120 % are considered. Click again to switch the filter off.",
       micFilterActive: "Filter:",
       micFilterNoMatch: "no value inside filter band",
+      micTestHint: "There is a separate diagnostic tool for checking the microphone setup:",
+      micTestLink: "Microphone test",
       footer1: "Maximum Resonance = fundamental \xD7 1.75 (both heads); High = \xD71.5 / \xD71.85; Medium = \xD71.4 / \xD72.0; Low = \xD71.2 / \xD72.3.",
       footer2Title: "On depth influence:",
       footer2: "There is no established formula for this \u2014 the real multiplier is calibrated or measured per drum, not calculated. The shift shown here is therefore our own plausible approximation based on the depth-to-diameter ratio compared to a typical reference value per drum type \u2014 not a confirmed standard. Use it as a rough starting point, not an exact target.",
@@ -553,7 +557,7 @@
     "Tom": { high: 1.92, low: 1.6 },
     "Floor Tom": { high: 1.92, low: 1.6 }
   };
- const DRUM_PRESETS = [
+  const DRUM_PRESETS = [
     { name: '22x14" Bass Drum', type: "Bass Drum", diameter: 22, depth: 14, lugs: 10, note: "C", octave: 2 },
     { name: '16x16" Floor Tom', type: "Floor Tom", diameter: 16, depth: 16, lugs: 8, note: "E", octave: 2 },
     { name: '14x10" Rack Tom', type: "Tom", diameter: 14, depth: 10, lugs: 8, note: "G#", octave: 2 },
@@ -1002,7 +1006,7 @@
         className: "no-print w-full border border-dashed border-[#5c4a33] rounded-sm py-3 text-[#c9a15a] hover:border-[#c9a15a] hover:bg-[#211910] transition-colors text-sm uppercase tracking-wide"
       },
       t.addDrumButton
-    ), /* @__PURE__ */ React.createElement("footer", { className: "pt-6 text-xs text-[#6b5d47] leading-relaxed border-t border-[#3a2c1a] space-y-2" }, /* @__PURE__ */ React.createElement("p", null, t.footer1), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer2Title), " ", t.footer2), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer3Title), " ", t.footer3), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer4Title), " ", t.footer4a, " ", /* @__PURE__ */ React.createElement("em", null, t.footer4b), " ", t.footer4c), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer5Title), " ", t.footer5), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer6Title), " ", t.footer6), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer7Title), " ", t.footer7), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer8Title), " ", t.footer8))));
+    ), /* @__PURE__ */ React.createElement("footer", { className: "pt-6 text-xs text-[#6b5d47] leading-relaxed border-t border-[#3a2c1a] space-y-2" }, /* @__PURE__ */ React.createElement("p", null, t.footer1), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer2Title), " ", t.footer2), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer3Title), " ", t.footer3), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer4Title), " ", t.footer4a, " ", /* @__PURE__ */ React.createElement("em", null, t.footer4b), " ", t.footer4c), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer5Title), " ", t.footer5), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer6Title), " ", t.footer6, " ", t.micTestHint, " ", /* @__PURE__ */ React.createElement("a", { href: "mic-test.html", target: "_blank", rel: "noopener", className: "text-[#c9a15a] underline hover:text-[#e8c07a]" }, t.micTestLink)), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer7Title), " ", t.footer7), /* @__PURE__ */ React.createElement("p", null, /* @__PURE__ */ React.createElement("strong", { className: "text-[#8a7a5f]" }, t.footer8Title), " ", t.footer8))));
   }
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(/* @__PURE__ */ React.createElement(TunebotCalculator, null));
