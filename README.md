@@ -3,7 +3,7 @@
 Ein kleiner, eigenständiger Web-Rechner zum Stimmen von Schlagzeugfellen. Kein
 Build-Step, kein Backend – läuft komplett im Browser.
 
-🔗 **Live:** https://snoth0x53.github.io/tunebot-calc/
+🔗 **Live:** https://snoth0x53.github.io/fellton/
 
 ## Was das Tool macht
 
@@ -132,11 +132,13 @@ Die vollständigen Rohdaten und Berechnungen liegen als CSV bei:
 
 `mic-test.html` ist ein eigenständiges Diagnose-Werkzeug, um ein Mikrofon-Setup zu
 prüfen, bevor es im Rechner zum Einsatz kommt: Live-Wellenform, Frequenzspektrum mit
-markierten Peaks und beschrifteter Frequenzachse, Pegel-Meter, Peak-Liste und ein
-Log der letzten Anschläge zum Vergleich der Konsistenz zwischen Mikrofonen. Ein
-"Einfrieren"-Button hält die Anzeige zum bequemen Ablesen fest.
+markierten Gruppen und beschrifteter Frequenzachse, Pegel-Meter und ein Log der
+letzten Anschläge zum Vergleich der Konsistenz zwischen Mikrofonen. Es nutzt dieselbe
+Spektralanalyse wie der Rechner, sodass sich die Werte direkt vergleichen lassen;
+zusätzlich wird der YIN-Grundton als Referenz mit angezeigt. Ein "Einfrieren"-Button
+hält die Anzeige zum bequemen Ablesen fest.
 
-🔗 **Live:** https://snoth0x53.github.io/tunebot-calc/mic-test.html
+🔗 **Live:** https://snoth0x53.github.io/fellton/mic-test.html
 
 **Wichtig:** Mikrofonzugriff funktioniert nur in einem echten Browser-Tab über
 HTTPS (oder `localhost`) – nicht in eingebetteten Vorschau-Fenstern. Für lokale
