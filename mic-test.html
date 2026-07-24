@@ -34,10 +34,12 @@
   canvas { width: 100%; display: block; background: var(--card2); border: 1px solid var(--border); border-radius: 3px; }
   .meterWrap { height: 14px; background: var(--card2); border: 1px solid var(--border); border-radius: 7px; overflow: hidden; margin-top: 8px; }
   .meterBar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--green), var(--gold), var(--red)); transition: width 0.05s linear; }
-  .pitchDisplay { font-family: ui-monospace, monospace; font-size: 42px; text-align: center; padding: 20px 0 6px; }
+  .pitchDisplay { font-family: ui-monospace, monospace; font-size: 42px; text-align: center; padding: 16px 0 4px; }
   .pitchLabel { text-align: center; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
-  .peakList { font-family: ui-monospace, monospace; font-size: 15px; text-align: center; color: var(--gold); padding: 4px 0 2px; min-height: 20px; }
-  .freezeRow { display: flex; justify-content: center; margin-top: 10px; }
+  .subValue { font-family: ui-monospace, monospace; font-size: 13px; text-align: center; color: var(--muted); padding: 2px 0; }
+  .subValue b { color: var(--gold); font-weight: normal; }
+  .peakList { font-family: ui-monospace, monospace; font-size: 15px; text-align: center; color: var(--gold); padding: 6px 0 2px; min-height: 20px; }
+  .freezeRow { display: flex; justify-content: center; margin-top: 12px; }
   table { width: 100%; border-collapse: collapse; font-family: ui-monospace, monospace; font-size: 13px; margin-top: 10px; }
   th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
   th { color: var(--muted); font-weight: normal; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; }
@@ -59,9 +61,7 @@
       <button id="langEn" style="border:none; border-radius:0; padding:8px 14px;">EN</button>
     </div>
   </div>
-  <p class="sub" data-i18n="sub">Testet ein Mikrofon-Setup live, bevor es in Fellton zum Einsatz kommt:
-  Pegel, Frequenzspektrum mit Peak-Erkennung und laufende Tonhöhenerkennung. So lässt sich vergleichen,
-  wie sauber verschiedene Mikrofone einen Trommelanschlag erfassen \u2014 und welcher Peak die Lug-Frequenz ist.</p>
+  <p class="sub" data-i18n="sub">Prüft ein Mikrofon-Setup, bevor es in Fellton zum Einsatz kommt. Die Auswertung nutzt dieselbe Spektralanalyse wie der Rechner, sodass sich die Werte direkt vergleichen lassen — zusätzlich mit Verlauf über die letzten Anschläge.</p>
 </header>
 
 <main>
@@ -80,9 +80,11 @@
   </div>
 
   <div class="card">
-    <div class="pitchLabel" data-i18n="livePitchLabel">Live erkannte Frequenz</div>
+    <div class="pitchLabel" data-i18n="mainLabel">Stärkste Gruppe (wie im Rechner)</div>
     <div class="pitchDisplay" id="pitchDisplay">— Hz</div>
-    <div class="pitchLabel" data-i18n="peakLabel">Stärkste Peaks im Spektrum</div>
+    <div class="subValue"><span data-i18n="stableLabel">Stabil über letzte Anschläge:</span> <b id="stableDisplay">—</b></div>
+    <div class="subValue"><span data-i18n="yinLabel">YIN-Grundton (Vergleich):</span> <b id="yinDisplay">—</b></div>
+    <div class="pitchLabel" style="margin-top:12px;" data-i18n="groupLabel">Gruppen im Spektrum</div>
     <div class="peakList" id="peakList">—</div>
     <div class="meterWrap"><div class="meterBar" id="meterBar"></div></div>
     <div class="freezeRow"><button id="freezeBtn" disabled data-i18n="freezeBtn">Einfrieren</button></div>
@@ -95,14 +97,14 @@
   </div>
 
   <div class="card">
-    <label data-i18n="spectrumLabel">Frequenzspektrum (mit Peak-Markern)</label>
+    <label data-i18n="spectrumLabel">Frequenzspektrum (mit Gruppen-Markern)</label>
     <canvas id="freqCanvas" height="160"></canvas>
   </div>
 
   <div class="card">
     <label data-i18n="hitsLabel">Erkannte Anschläge (letzte 10)</label>
     <table>
-      <thead><tr><th>#</th><th data-i18n="thTime">Zeit</th><th data-i18n="thFreq">Grundton</th><th data-i18n="thPeaks">Peaks</th><th data-i18n="thLevel">Pegel</th></tr></thead>
+      <thead><tr><th>#</th><th data-i18n="thTime">Zeit</th><th data-i18n="thGroups">Gruppen</th><th data-i18n="thYin">YIN</th><th data-i18n="thLevel">Pegel</th></tr></thead>
       <tbody id="hitLog"><tr><td colspan="5" style="color: var(--muted);" data-i18n="noHitsYet">Noch keine Anschläge erkannt.</td></tr></tbody>
     </table>
   </div>
@@ -117,6 +119,8 @@
   const statusDot = document.getElementById('statusDot');
   const statusText = document.getElementById('statusText');
   const pitchDisplay = document.getElementById('pitchDisplay');
+  const stableDisplay = document.getElementById('stableDisplay');
+  const yinDisplay = document.getElementById('yinDisplay');
   const peakList = document.getElementById('peakList');
   const meterBar = document.getElementById('meterBar');
   const waveCanvas = document.getElementById('waveCanvas');
@@ -130,31 +134,35 @@
   const TT = {
     de: {
       eyebrow: 'Diagnose-Werkzeug', title: 'Mikrofon-Test',
-      sub: 'Testet ein Mikrofon-Setup live, bevor es in Fellton zum Einsatz kommt: Pegel, Frequenzspektrum mit Peak-Erkennung und laufende Tonhöhenerkennung. So lässt sich vergleichen, wie sauber verschiedene Mikrofone einen Trommelanschlag erfassen — und welcher Peak die Lug-Frequenz ist.',
+      sub: 'Prüft ein Mikrofon-Setup, bevor es in Fellton zum Einsatz kommt. Die Auswertung nutzt dieselbe Spektralanalyse wie der Rechner, sodass sich die Werte direkt vergleichen lassen — zusätzlich mit Verlauf über die letzten Anschläge.',
       deviceLabel: 'Eingabegerät', placeholderOption: 'Erst auf "Starten" klicken…',
       startBtn: 'Starten', stopBtn: 'Stoppen', freezeBtn: 'Einfrieren', unfreezeBtn: 'Weiter',
       notConnected: 'Nicht verbunden', liveListening: 'Live — hört zu', stopped: 'Gestoppt', frozen: 'Eingefroren', errorPrefix: 'Fehler: ',
-      livePitchLabel: 'Live erkannte Frequenz (Grundton)',
-      peakLabel: 'Stärkste Peaks im Spektrum',
+      mainLabel: 'Stärkste Gruppe (wie im Rechner)',
+      stableLabel: 'Stabil über letzte Anschläge:',
+      yinLabel: 'YIN-Grundton (Vergleich):',
+      groupLabel: 'Gruppen im Spektrum',
       levelHint: 'Pegel (RMS). Je lauter/klarer der Anschlag, desto zuverlässiger die Erkennung. "Einfrieren" hält den aktuellen Wert fest.',
-      waveformLabel: 'Wellenform (Zeitbereich)', spectrumLabel: 'Frequenzspektrum (mit Peak-Markern)',
+      waveformLabel: 'Wellenform (Zeitbereich)', spectrumLabel: 'Frequenzspektrum (mit Gruppen-Markern)',
       hitsLabel: 'Erkannte Anschläge (letzte 10)',
-      thTime: 'Zeit', thFreq: 'Grundton', thPeaks: 'Peaks', thLevel: 'Pegel',
+      thTime: 'Zeit', thGroups: 'Gruppen', thYin: 'YIN', thLevel: 'Pegel',
       noHitsYet: 'Noch keine Anschläge erkannt.',
       micFallback: 'Mikrofon', locale: 'de-DE',
     },
     en: {
       eyebrow: 'Diagnostic Tool', title: 'Microphone Test',
-      sub: "Tests a microphone setup live before it's used in Fellton: level, frequency spectrum with peak detection, and continuous pitch detection. This lets you compare how cleanly different microphones pick up a drum hit — and which peak is the lug frequency.",
+      sub: 'Checks a microphone setup before using it in Fellton. The analysis uses the same spectral method as the calculator, so the values compare directly — plus a history of recent strikes.',
       deviceLabel: 'Input device', placeholderOption: 'Click "Start" first…',
       startBtn: 'Start', stopBtn: 'Stop', freezeBtn: 'Freeze', unfreezeBtn: 'Resume',
       notConnected: 'Not connected', liveListening: 'Live — listening', stopped: 'Stopped', frozen: 'Frozen', errorPrefix: 'Error: ',
-      livePitchLabel: 'Live detected frequency (fundamental)',
-      peakLabel: 'Strongest peaks in spectrum',
+      mainLabel: 'Strongest group (same as calculator)',
+      stableLabel: 'Stable across recent strikes:',
+      yinLabel: 'YIN fundamental (for comparison):',
+      groupLabel: 'Groups in spectrum',
       levelHint: 'Level (RMS). The louder/clearer the hit, the more reliable the detection. "Freeze" holds the current value.',
-      waveformLabel: 'Waveform (time domain)', spectrumLabel: 'Frequency spectrum (with peak markers)',
+      waveformLabel: 'Waveform (time domain)', spectrumLabel: 'Frequency spectrum (with group markers)',
       hitsLabel: 'Detected hits (last 10)',
-      thTime: 'Time', thFreq: 'Fundamental', thPeaks: 'Peaks', thLevel: 'Level',
+      thTime: 'Time', thGroups: 'Groups', thYin: 'YIN', thLevel: 'Level',
       noHitsYet: 'No hits detected yet.',
       micFallback: 'Microphone', locale: 'en-US',
     },
@@ -186,7 +194,9 @@
   let onsetActive = false;
   let hits = [];
   let frozen = false;
+  let history = [];          // Gruppen der letzten Anschläge (wie im Rechner)
   const MIN_HZ = 40, MAX_HZ = 500;
+  const FFT_SIZE = 32768;    // identisch zum Rechner
 
   function fitCanvas(canvas) {
     const rect = canvas.getBoundingClientRect();
@@ -194,8 +204,9 @@
     canvas.height = rect.height * devicePixelRatio;
   }
 
+  // YIN — nur noch als Vergleichswert (findet den Trommel-Grundton, nicht die Lug-Frequenz)
   function detectPitch(buf, sampleRate, threshold = 0.15) {
-    const SIZE = buf.length;
+    const SIZE = Math.min(buf.length, 4096);
     const halfSize = Math.floor(SIZE / 2);
     let rms = 0;
     for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
@@ -237,15 +248,16 @@
     return { freq, rms };
   }
 
-  // FFT-Peak-Analyse (dieselbe Logik wie in der Haupt-App) — findet die stärksten Spektral-Peaks.
-  function findPeaks(freqDb, sampleRate, fftSize) {
+  // Spektralanalyse — identisch zur Logik im Rechner
+  function analyzeSpectrum(freqDb, sampleRate, fftSize) {
     const binHz = sampleRate / fftSize;
     const startBin = Math.max(2, Math.floor(MIN_HZ / binHz));
     const endBin = Math.min(freqDb.length - 2, Math.ceil(MAX_HZ / binHz));
+    if (endBin <= startBin) return null;
     let maxDb = -Infinity;
     for (let i = startBin; i <= endBin; i++) if (freqDb[i] > maxDb) maxDb = freqDb[i];
-    if (maxDb < -90) return [];
-    const threshold = maxDb - 20;
+    if (maxDb < -90) return null;
+    const threshold = maxDb - 18;
     const peaks = [];
     for (let i = startBin; i <= endBin; i++) {
       const v = freqDb[i];
@@ -254,13 +266,50 @@
         const denom = a - 2 * b + c;
         const delta = denom !== 0 ? 0.5 * (a - c) / denom : 0;
         peaks.push({ freq: (i + delta) * binHz, db: b });
+        if (peaks.length >= 24) break;
       }
     }
-    // nach Stärke sortieren, stärkste 5 behalten, dann nach Frequenz sortieren
-    peaks.sort((x, y) => y.db - x.db);
-    const top = peaks.slice(0, 5);
-    top.sort((x, y) => x.freq - y.freq);
-    return top;
+    if (peaks.length === 0) return null;
+    // Gruppierungsabstand skaliert mit der Frequenz (6 %, mindestens 8 Hz)
+    const groupGap = (f) => Math.max(8, f * 0.06);
+    const subsets = [];
+    let current = [peaks[0]];
+    for (let k = 1; k < peaks.length; k++) {
+      if (peaks[k].freq - peaks[k - 1].freq <= groupGap(peaks[k - 1].freq)) current.push(peaks[k]);
+      else { subsets.push(current); current = [peaks[k]]; }
+    }
+    subsets.push(current);
+    const best = (arr) => arr.reduce((m, p) => p.db > m.db ? p : m);
+    const groups = subsets.map((s) => ({ freq: best(s).freq, db: best(s).db }));
+    return { groups };
+  }
+
+  // Stabilster wiederkehrender Ton über die letzten Anschläge — identisch zum Rechner
+  function pickStablePeak(hist, tolPct = 0.04) {
+    const all = [];
+    hist.forEach(gs => gs.forEach(f => all.push(f)));
+    if (all.length === 0) return null;
+    let bestFreq = null, bestScore = -1;
+    for (const cand of all) {
+      const tol = cand * tolPct;
+      let hitsCount = 0;
+      const matched = [];
+      hist.forEach(gs => {
+        let found = null;
+        for (const f of gs) {
+          if (Math.abs(f - cand) <= tol) {
+            if (found === null || Math.abs(f - cand) < Math.abs(found - cand)) found = f;
+          }
+        }
+        if (found !== null) { hitsCount++; matched.push(found); }
+      });
+      const score = hitsCount * 1000 - cand * 0.001;
+      if (score > bestScore) {
+        bestScore = score;
+        bestFreq = matched.reduce((a, b) => a + b, 0) / matched.length;
+      }
+    }
+    return bestFreq;
   }
 
   async function populateDevices() {
@@ -299,8 +348,8 @@
       audioCtx = new Ctx();
       source = audioCtx.createMediaStreamSource(stream);
       analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 16384;
-      analyser.smoothingTimeConstant = 0.2;
+      analyser.fftSize = FFT_SIZE;
+      analyser.smoothingTimeConstant = 0;
       source.connect(analyser);
 
       fitCanvas(waveCanvas);
@@ -315,6 +364,7 @@
       frozen = false;
       freezeBtn.textContent = TT[lang].freezeBtn;
       hits = [];
+      history = [];
       renderHitLog();
       loop();
     } catch (err) {
@@ -334,6 +384,8 @@
     freezeBtn.disabled = true;
     deviceSelect.disabled = false;
     pitchDisplay.textContent = '— Hz';
+    stableDisplay.textContent = '—';
+    yinDisplay.textContent = '—';
     peakList.textContent = '—';
     meterBar.style.width = '0%';
     onsetActive = false;
@@ -355,8 +407,8 @@
       <tr>
         <td>${hits.length - i}</td>
         <td>${h.time}</td>
-        <td>${h.freq > 0 ? h.freq.toFixed(1) + ' Hz' : '—'}</td>
-        <td style="color: var(--gold);">${h.peaks}</td>
+        <td style="color: var(--gold);">${h.groups}</td>
+        <td>${h.yin > 0 ? h.yin.toFixed(1) : '—'}</td>
         <td>${(h.rms * 100).toFixed(0)}%</td>
       </tr>
     `).join('');
@@ -368,32 +420,33 @@
     waveCtx.strokeStyle = '#c9a15a';
     waveCtx.lineWidth = 1.5 * devicePixelRatio;
     waveCtx.beginPath();
-    for (let i = 0; i < buf.length; i++) {
+    const step = Math.max(1, Math.floor(buf.length / 2048));
+    let n = 0;
+    for (let i = 0; i < buf.length; i += step, n++) {
       const x = (i / buf.length) * w;
       const y = h / 2 + buf[i] * h / 2;
-      if (i === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
+      if (n === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
     }
     waveCtx.stroke();
   }
 
-  function drawFreq(freqData, sampleRate, fftSize, peaks) {
+  function drawFreq(freqData, sampleRate, fftSize, groups) {
     const w = freqCanvas.width, h = freqCanvas.height;
     freqCtx.clearRect(0, 0, w, h);
     const binHz = sampleRate / fftSize;
-    const displayMax = 520; // Hz, angezeigter Bereich
+    const displayMax = 520;
     const maxBin = Math.min(freqData.length, Math.ceil(displayMax / binHz));
     const dpr = devicePixelRatio;
+    const barW = Math.max(1, w / maxBin);
 
-    // Balken
     for (let i = 1; i < maxBin; i++) {
       const v = freqData[i] / 255;
       const x = ((i * binHz) / displayMax) * w;
       const barH = v * (h - 22 * dpr);
       freqCtx.fillStyle = `rgba(201,161,90,${0.25 + v * 0.6})`;
-      freqCtx.fillRect(x, h - 18 * dpr - barH, Math.max(1, w / maxBin), barH);
+      freqCtx.fillRect(x, h - 18 * dpr - barH, barW, barH);
     }
 
-    // Frequenzachse (Marker alle 100 Hz)
     freqCtx.fillStyle = '#a8977b';
     freqCtx.font = `${11 * dpr}px ui-monospace, monospace`;
     freqCtx.textAlign = 'center';
@@ -408,10 +461,9 @@
       freqCtx.fillText(f + ' Hz', x, h - 4 * dpr);
     }
 
-    // Peak-Marker
-    if (peaks && peaks.length) {
-      peaks.forEach((p, idx) => {
-        const x = (p.freq / displayMax) * w;
+    if (groups && groups.length) {
+      groups.forEach((g, idx) => {
+        const x = (g.freq / displayMax) * w;
         freqCtx.strokeStyle = idx === 0 ? '#7fa593' : '#c1666b';
         freqCtx.lineWidth = 1.5 * dpr;
         freqCtx.beginPath();
@@ -419,8 +471,7 @@
         freqCtx.lineTo(x, h - 18 * dpr);
         freqCtx.stroke();
         freqCtx.fillStyle = idx === 0 ? '#7fa593' : '#c1666b';
-        freqCtx.textAlign = 'center';
-        freqCtx.fillText(p.freq.toFixed(0), x, 12 * dpr);
+        freqCtx.fillText(g.freq.toFixed(0), x, 12 * dpr);
       });
     }
   }
@@ -429,43 +480,55 @@
     if (!analyser) return;
     if (frozen) { rafId = requestAnimationFrame(loop); return; }
 
-    const buf = new Float32Array(analyser.fftSize);
-    analyser.getFloatTimeDomainData(buf);
-    const freqDataByte = new Uint8Array(analyser.frequencyBinCount);
-    analyser.getByteFrequencyData(freqDataByte);
-    const freqDataDb = new Float32Array(analyser.frequencyBinCount);
-    analyser.getFloatFrequencyData(freqDataDb);
+    const timeBuf = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(timeBuf);
+    const freqByte = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(freqByte);
+    const freqDb = new Float32Array(analyser.frequencyBinCount);
+    analyser.getFloatFrequencyData(freqDb);
 
-    const peaks = findPeaks(freqDataDb, audioCtx.sampleRate, analyser.fftSize);
+    const res = analyzeSpectrum(freqDb, audioCtx.sampleRate, analyser.fftSize);
+    const groups = res ? res.groups : [];
 
-    drawWave(buf);
-    drawFreq(freqDataByte, audioCtx.sampleRate, analyser.fftSize, peaks);
+    drawWave(timeBuf);
+    drawFreq(freqByte, audioCtx.sampleRate, analyser.fftSize, groups);
 
-    const { freq, rms } = detectPitch(buf, audioCtx.sampleRate);
-    const level = Math.min(1, rms * 6);
-    meterBar.style.width = (level * 100).toFixed(0) + '%';
+    const { freq: yinFreq, rms } = detectPitch(timeBuf, audioCtx.sampleRate);
+    meterBar.style.width = (Math.min(1, rms * 6) * 100).toFixed(0) + '%';
 
-    if (freq > 0) pitchDisplay.textContent = freq.toFixed(1) + ' Hz';
-    if (peaks.length) peakList.textContent = peaks.map(p => p.freq.toFixed(0)).join(' · ') + ' Hz';
+    if (groups.length) {
+      const strongest = groups.reduce((m, g) => g.db > m.db ? g : m);
+      pitchDisplay.textContent = strongest.freq.toFixed(1) + ' Hz';
+      peakList.textContent = groups.map(g => g.freq.toFixed(0)).join(' · ') + ' Hz';
+    }
+    if (yinFreq > 0) yinDisplay.textContent = yinFreq.toFixed(1) + ' Hz';
 
-    if (!onsetActive && rms > 0.015) {
+    // Anschlag-Erkennung (Schwellen wie im Rechner)
+    if (!onsetActive && rms > 0.03) {
       onsetActive = true;
       setTimeout(() => {
         if (!analyser) return;
-        const b2 = new Float32Array(analyser.fftSize);
-        analyser.getFloatTimeDomainData(b2);
+        const t2 = new Float32Array(analyser.fftSize);
+        analyser.getFloatTimeDomainData(t2);
         const d2 = new Float32Array(analyser.frequencyBinCount);
         analyser.getFloatFrequencyData(d2);
-        const settled = detectPitch(b2, audioCtx.sampleRate);
-        const pk = findPeaks(d2, audioCtx.sampleRate, analyser.fftSize);
-        hits.push({
-          time: new Date().toLocaleTimeString(TT[lang].locale),
-          freq: settled.freq,
-          peaks: pk.map(p => p.freq.toFixed(0)).join(' · '),
-          rms: settled.rms,
-        });
-        renderHitLog();
-      }, 120);
+        const snap = analyzeSpectrum(d2, audioCtx.sampleRate, analyser.fftSize);
+        const settled = detectPitch(t2, audioCtx.sampleRate);
+        if (snap && snap.groups.length) {
+          const gs = snap.groups.map(g => g.freq);
+          history.push(gs);
+          if (history.length > 4) history.shift();
+          const stable = pickStablePeak(history);
+          stableDisplay.textContent = stable != null ? stable.toFixed(1) + ' Hz' : '—';
+          hits.push({
+            time: new Date().toLocaleTimeString(TT[lang].locale),
+            groups: gs.map(f => f.toFixed(0)).join(' · '),
+            yin: settled.freq,
+            rms: settled.rms,
+          });
+          renderHitLog();
+        }
+      }, 450); // gleiches Zeitfenster wie im Rechner
     } else if (onsetActive && rms < 0.02) {
       onsetActive = false;
     }
